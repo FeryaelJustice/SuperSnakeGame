@@ -3,6 +3,7 @@ package com.feryaeljustice.supersnakegame.data.repository
 import android.content.Context
 import android.credentials.GetCredentialException
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -35,6 +36,13 @@ class AuthRepositoryImpl
     ) : AuthRepository {
         @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
         override suspend fun requestGoogleIdToken(): AuthResult =
+            tryGetGoogleCredential(filterByAuthorized = true)
+                ?: tryGetGoogleCredential(filterByAuthorized = false)
+                ?: AuthResult.Failure(IllegalStateException("No valid Google credential found"))
+
+        @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+        @Suppress("TooGenericExceptionCaught")
+        override suspend fun tryGetGoogleCredential(filterByAuthorized: Boolean): AuthResult? =
             try {
                 // 1) SIWG
                 val googleIdOption =
@@ -42,8 +50,8 @@ class AuthRepositoryImpl
                         .Builder()
                         // Your server's client ID, not your Android client ID.
                         .setServerClientId(webClientId)
-                        // Only show accounts previously used to sign in.
-                        .setFilterByAuthorizedAccounts(true)
+                        // Can cause the error of "Invalid Credentials"
+                        .setFilterByAuthorizedAccounts(filterByAuthorized)
                         .build()
 
                 // 2) Petición de credenciales
@@ -70,6 +78,7 @@ class AuthRepositoryImpl
                 }
             } catch (e: GetCredentialException) {
                 // Maneja casos como TYPE_NO_CREDENTIAL o TYPE_USER_CANCELED
+                Log.w("Auth", "GetCredentialException: ${e.message}", e)
                 AuthResult.NeedsUi(null)
             } catch (e: Exception) {
                 AuthResult.Failure(e)
@@ -94,6 +103,7 @@ class AuthRepositoryImpl
 
         override fun getCurrentFirebaseAuthUser(): FirebaseUser? = firebaseAuth.currentUser
 
+        @Suppress("TooGenericExceptionCaught")
         override suspend fun signOut(): Boolean =
             try {
                 firebaseAuth.signOut()

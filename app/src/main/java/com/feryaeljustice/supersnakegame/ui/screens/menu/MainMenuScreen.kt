@@ -1,6 +1,7 @@
 package com.feryaeljustice.supersnakegame.ui.screens.menu
 
 import android.app.Activity.RESULT_OK
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +41,8 @@ fun MainMenuScreen(
     viewModel: MainMenuViewModel = hiltViewModel<MainMenuViewModel>(),
     navigateToGameScreen: (GameScreenData) -> Unit,
 ) {
+    val ctx = LocalContext.current
+    val uiEvents = viewModel.uiEvents
     val ui = viewModel.uiState.collectAsState().value
 
     val googleSignInLauncher =
@@ -47,6 +51,16 @@ fun MainMenuScreen(
                 viewModel.onOneTapResult()
             }
         }
+
+    LaunchedEffect(Unit) {
+        uiEvents.collect { event ->
+            when (event) {
+                is MainMenuUiEvent.ShowToast -> {
+                    Toast.makeText(ctx, event.message, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(

@@ -1,4 +1,5 @@
-import org.gradle.kotlin.dsl.release
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -11,22 +12,25 @@ plugins {
     alias(libs.plugins.google.gms.services)
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties =
+    Properties().apply {
+        load(FileInputStream(keystorePropertiesFile))
+    }
+
 android {
     signingConfigs {
         getByName("debug") {
-            storeFile = file("C:\\Users\\nano9\\.android\\debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            storeFile = file(keystoreProperties["storeFileDev"] as String)
+            storePassword = keystoreProperties["storePasswordDev"] as String
+            keyAlias = keystoreProperties["keyAliasDev"] as String
+            keyPassword = keystoreProperties["keyPasswordDev"] as String
         }
         create("release") {
-            storeFile =
-                file(
-                    "C:\\Users\\nano9\\OneDrive\\Escritorio\\Stuff\\Professional\\Developer\\Stuff\\Mobile\\Android\\FeryaelJustice\\Keystores\\supersnakegame_keystore.jks",
-                )
-            storePassword = "elxulo99"
-            keyPassword = "elxulo99"
-            keyAlias = "SuperSnakeGame"
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
         }
     }
     namespace = "com.feryaeljustice.supersnakegame"
@@ -36,8 +40,8 @@ android {
         applicationId = "com.feryaeljustice.supersnakegame"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 5
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,12 +54,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

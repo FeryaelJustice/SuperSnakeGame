@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "422994572153-cnlvinsc788in997auu6nhaneo8a09m9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.feryaeljustice.supersnakegame",
+            "certificate_hash": "a0a0754ae1bd117f4ad6e250c1a82196fb2e19bf"
+          }
+        },
+        {
           "client_id": "422994572153-ll74mv5bg99s28i53rcbfp4cd91rraf6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

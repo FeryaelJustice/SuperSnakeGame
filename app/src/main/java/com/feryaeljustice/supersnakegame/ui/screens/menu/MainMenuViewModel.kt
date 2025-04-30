@@ -12,7 +12,9 @@ import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiSta
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState.SignedIn
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -42,8 +44,13 @@ class MainMenuViewModel
             ) : UiState()
         }
 
+        // UI STATE
         private val _uiState = MutableStateFlow<UiState>(Idle)
         val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+        // UI EVENTS
+        private val _uiEvents = MutableSharedFlow<MainMenuUiEvent>()
+        val uiEvents: SharedFlow<MainMenuUiEvent> = _uiEvents
 
         init {
             getFirebaseUser()
@@ -57,22 +64,28 @@ class MainMenuViewModel
         }
 
         /** Llamar al click de tu GoogleButton */
+        @Suppress("TooGenericExceptionCaught")
         fun onGoogleButtonClick() {
             viewModelScope.launch {
                 _uiState.value = Loading
                 when (val res = authRepo.requestGoogleIdToken()) {
                     is AuthResult.Failure -> {
+                        val message = res.exception.message
                         // _uiState.value = Error(res.exception.message)
-                        Log.e("signIn", "error ${res.exception.message}")
+                        Log.e("signIn", "error $message")
                         _uiState.value = Idle
+                        message?.let { msg ->
+                            _uiEvents.emit(MainMenuUiEvent.ShowToast(msg))
+                        }
                     }
+
                     is AuthResult.NeedsUi -> _uiState.value = LaunchUi(res.intentSender)
                     is AuthResult.Success -> {
                         try {
                             val user = authRepo.firebaseSignIn(res.idToken)
                             user?.let {
                                 _uiState.value = SignedIn(it)
-                            } ?: throw Exception("User is null")
+                            } ?: error("User is null")
                         } catch (t: Throwable) {
                             // _uiState.value = Error(t.message)
                             Log.e("signIn", "error ${t.message}")
