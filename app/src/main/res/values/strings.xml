@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name" translatable="false">SuperSnakeGame</string>
+    <string name="default_web_client_id" translatable="false">422994572153-l7en22ocvqvuqlmajc0c01akqd7krqd2.apps.googleusercontent.com</string>
+</resources>
