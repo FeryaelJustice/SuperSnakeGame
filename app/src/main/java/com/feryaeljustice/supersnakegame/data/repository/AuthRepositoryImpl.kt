@@ -1,7 +1,6 @@
 package com.feryaeljustice.supersnakegame.data.repository
 
 import android.content.Context
-import android.credentials.GetCredentialException
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -74,14 +73,11 @@ class AuthRepositoryImpl
                     val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(cred.data)
                     AuthResult.Success(googleIdTokenCredential.idToken)
                 } else {
-                    AuthResult.Failure(IllegalStateException("No valid Google credential"))
+                    null
                 }
-            } catch (e: GetCredentialException) {
-                // Maneja casos como TYPE_NO_CREDENTIAL o TYPE_USER_CANCELED
-                Log.w("Auth", "GetCredentialException: ${e.message}", e)
-                AuthResult.NeedsUi(null)
             } catch (e: Exception) {
-                AuthResult.Failure(e)
+                Log.w("Auth", "GetCredentialException: ${e.message}", e)
+                null
             }
 
         override suspend fun firebaseSignIn(idToken: String): FirebaseUser? =
@@ -111,7 +107,7 @@ class AuthRepositoryImpl
                 credentialManager.clearCredentialState(clearRequest)
                 true
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.w("signOut", "signOut exception: ${e.message}", e)
                 false
             }
     }
