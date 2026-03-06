@@ -21,7 +21,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,12 +31,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.feryaeljustice.supersnakegame.R
 import com.feryaeljustice.supersnakegame.ui.components.GoogleButton
 import com.feryaeljustice.supersnakegame.ui.navigation.GameScreenData
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState
 
+@Suppress("EffectKeys")
 @Composable
 fun MainMenuScreen(
     viewModel: MainMenuViewModel = hiltViewModel<MainMenuViewModel>(),
@@ -43,12 +46,12 @@ fun MainMenuScreen(
 ) {
     val ctx = LocalContext.current
     val uiEvents = viewModel.uiEvents
-    val ui = viewModel.uiState.collectAsState().value
+    val ui by viewModel.uiState.collectAsStateWithLifecycle()
 
     val googleSignInLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                viewModel.onOneTapResult()
+                viewModel.onOneTapResult(ctx)
             }
         }
 
@@ -61,6 +64,8 @@ fun MainMenuScreen(
             }
         }
     }
+
+    val currentNavigateToGameScreen by rememberUpdatedState(navigateToGameScreen)
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
@@ -111,14 +116,14 @@ fun MainMenuScreen(
                         GoogleButton(
                             loading = ui is UiState.Loading,
                             onClicked = {
-                                viewModel.onGoogleButtonClick()
+                                viewModel.onGoogleButtonClick(ctx)
                             },
                         )
                     }
 
                     is UiState.LaunchUi -> {
                         // Disparamos la UI de One-Tap
-                        val intent = ui.sender
+                        val intent = (ui as UiState.LaunchUi).sender
                         LaunchedEffect(intent) {
                             intent?.let {
                                 googleSignInLauncher.launch(
@@ -132,12 +137,12 @@ fun MainMenuScreen(
                         // Ya autenticado, navegamos
                         LaunchedEffect(Unit) {
                             val data = GameScreenData(gameId = "1")
-                            navigateToGameScreen(data)
+                            currentNavigateToGameScreen(data)
                         }
                     }
 
                     is UiState.Error -> {
-                        Text("Error: ${ui.message}")
+                        Text("Error: ${(ui as UiState.Error).message}")
                     }
                 }
             }

@@ -28,20 +28,32 @@ import kotlin.coroutines.resumeWithException
 class AuthRepositoryImpl
     @Inject
     constructor(
-        @ApplicationContext private val ctx: Context,
         private val credentialManager: CredentialManager,
         private val firebaseAuth: FirebaseAuth,
-        @Named("webClientId") private val webClientId: String,
+        @param:Named("webClientId") private val webClientId: String,
     ) : AuthRepository {
+        companion object {
+            const val NONCE_BYTES = 32
+        }
+
         @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-        override suspend fun requestGoogleIdToken(): AuthResult =
-            tryGetGoogleCredential(filterByAuthorized = true)
-                ?: tryGetGoogleCredential(filterByAuthorized = false)
+        override suspend fun requestGoogleIdToken(activityContext: Context): AuthResult =
+            tryGetGoogleCredential(activityContext, filterByAuthorized = true)
+                ?: tryGetGoogleCredential(activityContext, filterByAuthorized = false)
                 ?: AuthResult.Failure(IllegalStateException("No valid Google credential found"))
+
+        private fun generateNonce(): String {
+            val bytes = ByteArray(NONCE_BYTES)
+            java.security.SecureRandom().nextBytes(bytes)
+            return bytes.joinToString("") { "%02x".format(it) }
+        }
 
         @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
         @Suppress("TooGenericExceptionCaught")
-        override suspend fun tryGetGoogleCredential(filterByAuthorized: Boolean): AuthResult? =
+        override suspend fun tryGetGoogleCredential(
+            activityContext: Context,
+            filterByAuthorized: Boolean,
+        ): AuthResult? =
             try {
                 // 1) SIWG
                 val googleIdOption =
@@ -51,6 +63,7 @@ class AuthRepositoryImpl
                         .setServerClientId(webClientId)
                         // Can cause the error of "Invalid Credentials"
                         .setFilterByAuthorizedAccounts(filterByAuthorized)
+                        .setNonce(generateNonce())
                         .build()
 
                 // 2) Petición de credenciales
@@ -63,7 +76,7 @@ class AuthRepositoryImpl
                 // 3) Llamada SÍNCRONA en IO (no devuelve Task, por tanto no hay await)
                 val response =
                     withContext(Dispatchers.IO) {
-                        credentialManager.getCredential(ctx, request)
+                        credentialManager.getCredential(activityContext, request)
                     }
 
                 // 4) Extrae el credential y castealo al tipo correcto

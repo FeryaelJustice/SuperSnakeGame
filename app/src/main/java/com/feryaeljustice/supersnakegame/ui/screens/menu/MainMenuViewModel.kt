@@ -1,5 +1,6 @@
 package com.feryaeljustice.supersnakegame.ui.screens.menu
 
+import android.content.Context
 import android.content.IntentSender
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -65,10 +66,10 @@ class MainMenuViewModel
 
         /** Llamar al click de tu GoogleButton */
         @Suppress("TooGenericExceptionCaught")
-        fun onGoogleButtonClick() {
+        fun onGoogleButtonClick(activityContext: Context) {
             viewModelScope.launch {
                 _uiState.value = Loading
-                when (val res = authRepo.requestGoogleIdToken()) {
+                when (val res = authRepo.requestGoogleIdToken(activityContext)) {
                     is AuthResult.Failure -> {
                         val message = res.exception.message
                         // _uiState.value = Error(res.exception.message)
@@ -79,7 +80,10 @@ class MainMenuViewModel
                         }
                     }
 
-                    is AuthResult.NeedsUi -> _uiState.value = LaunchUi(res.intentSender)
+                    is AuthResult.NeedsUi -> {
+                        _uiState.value = LaunchUi(res.intentSender)
+                    }
+
                     is AuthResult.Success -> {
                         try {
                             val user = authRepo.firebaseSignIn(res.idToken)
@@ -97,7 +101,7 @@ class MainMenuViewModel
         }
 
         /** Llamar después de que el IntentSender devuelva RESULT_OK */
-        fun onOneTapResult() {
-            onGoogleButtonClick()
+        fun onOneTapResult(ctx: Context) {
+            onGoogleButtonClick(ctx)
         }
     }
