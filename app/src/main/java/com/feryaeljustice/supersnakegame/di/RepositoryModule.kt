@@ -2,8 +2,10 @@ package com.feryaeljustice.supersnakegame.di
 
 import com.feryaeljustice.supersnakegame.data.repository.AuthRepositoryImpl
 import com.feryaeljustice.supersnakegame.data.repository.RecordRepositoryImpl
+import com.feryaeljustice.supersnakegame.data.repository.SettingsRepositoryImpl
 import com.feryaeljustice.supersnakegame.domain.repository.AuthRepository
 import com.feryaeljustice.supersnakegame.domain.repository.RecordRepository
+import com.feryaeljustice.supersnakegame.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +19,8 @@ interface RepositoryModule {
 
     @Binds
     fun bindRecordsRepository(recordRepository: RecordRepositoryImpl): RecordRepository
+
+    @Binds
+    fun bindSettingsRepository(settingsRepo: SettingsRepositoryImpl): SettingsRepository
 }
+

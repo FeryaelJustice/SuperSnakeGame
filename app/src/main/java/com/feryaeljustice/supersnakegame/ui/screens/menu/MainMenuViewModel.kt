@@ -6,7 +6,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.feryaeljustice.supersnakegame.domain.AuthResult
+import com.feryaeljustice.supersnakegame.domain.GameSpeed
+import com.feryaeljustice.supersnakegame.domain.ThemeMode
 import com.feryaeljustice.supersnakegame.domain.repository.AuthRepository
+import com.feryaeljustice.supersnakegame.domain.repository.SettingsRepository
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState.Idle
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState.LaunchUi
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState.Loading
@@ -26,6 +29,7 @@ class MainMenuViewModel
     @Inject
     constructor(
         private val authRepo: AuthRepository,
+        private val settingsRepo: SettingsRepository,
     ) : ViewModel() {
         sealed class UiState {
             object Idle : UiState()
@@ -49,6 +53,8 @@ class MainMenuViewModel
         private val _uiState = MutableStateFlow<UiState>(Idle)
         val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+        val settingsFlow = settingsRepo.settingsFlow
+
         // UI EVENTS
         private val _uiEvents = MutableSharedFlow<MainMenuUiEvent>()
         val uiEvents: SharedFlow<MainMenuUiEvent> = _uiEvents
@@ -64,6 +70,14 @@ class MainMenuViewModel
             }
         }
 
+        fun setThemeMode(mode: ThemeMode) = settingsRepo.setThemeMode(mode)
+
+        fun setGameSpeed(speed: GameSpeed) = settingsRepo.setGameSpeed(speed)
+
+        fun setShowGrid(enabled: Boolean) = settingsRepo.setShowGrid(enabled)
+
+        fun setHapticsEnabled(enabled: Boolean) = settingsRepo.setHapticsEnabled(enabled)
+
         /** Llamar al click de tu GoogleButton */
         @Suppress("TooGenericExceptionCaught")
         fun onGoogleButtonClick(activityContext: Context) {
@@ -72,7 +86,6 @@ class MainMenuViewModel
                 when (val res = authRepo.requestGoogleIdToken(activityContext)) {
                     is AuthResult.Failure -> {
                         val message = res.exception.message
-                        // _uiState.value = Error(res.exception.message)
                         Log.e("signIn", "error $message")
                         _uiState.value = Idle
                         message?.let { msg ->
@@ -91,7 +104,6 @@ class MainMenuViewModel
                                 _uiState.value = SignedIn(it)
                             } ?: error("User is null")
                         } catch (t: Throwable) {
-                            // _uiState.value = Error(t.message)
                             Log.e("signIn", "error ${t.message}")
                             _uiState.value = Idle
                         }

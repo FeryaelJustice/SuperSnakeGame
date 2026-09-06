@@ -1,6 +1,7 @@
 package com.feryaeljustice.supersnakegame.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.feryaeljustice.supersnakegame.domain.Direction
+import com.feryaeljustice.supersnakegame.ui.theme.NeonGreen
 
 @Composable
 fun ButtonsDirectionController(
@@ -30,9 +32,9 @@ fun ButtonsDirectionController(
     // Diámetro de cada botón
     val buttonSize = 82.dp
     // Alpha de cada botón
-    val buttonAlpha = 0.5f
+    val buttonAlpha = 0.65f
     // Espacio para que el botón no quede justo en el borde
-    val padding = 12.dp
+    val padding = 10.dp
 
     Box(modifier = modifier.size(padSize)) {
         // UP
@@ -41,16 +43,18 @@ fun ButtonsDirectionController(
                 Modifier
                     .align(Alignment.TopCenter)
                     .size(buttonSize)
-                    .padding(padding) // expande área de toque
+                    .padding(padding)
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = buttonAlpha))
+                    .border(1.5.dp, NeonGreen.copy(alpha = 0.6f), CircleShape)
                     .clickable { onDirectionChange(Direction.UP) },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowUp,
                 contentDescription = "Up",
-                tint = Color.White,
+                tint = NeonGreen,
+                modifier = Modifier.size(32.dp),
             )
         }
 
@@ -63,13 +67,15 @@ fun ButtonsDirectionController(
                     .padding(padding)
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = buttonAlpha))
+                    .border(1.5.dp, NeonGreen.copy(alpha = 0.6f), CircleShape)
                     .clickable { onDirectionChange(Direction.DOWN) },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = "Down",
-                tint = Color.White,
+                tint = NeonGreen,
+                modifier = Modifier.size(32.dp),
             )
         }
 
@@ -82,13 +88,15 @@ fun ButtonsDirectionController(
                     .padding(padding)
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = buttonAlpha))
+                    .border(1.5.dp, NeonGreen.copy(alpha = 0.6f), CircleShape)
                     .clickable { onDirectionChange(Direction.LEFT) },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
                 contentDescription = "Left",
-                tint = Color.White,
+                tint = NeonGreen,
+                modifier = Modifier.size(32.dp),
             )
         }
 
@@ -101,13 +109,15 @@ fun ButtonsDirectionController(
                     .padding(padding)
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = buttonAlpha))
+                    .border(1.5.dp, NeonGreen.copy(alpha = 0.6f), CircleShape)
                     .clickable { onDirectionChange(Direction.RIGHT) },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Default.ArrowForward,
                 contentDescription = "Right",
-                tint = Color.White,
+                tint = NeonGreen,
+                modifier = Modifier.size(32.dp),
             )
         }
     }
