@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -49,16 +48,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -67,6 +65,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.feryaeljustice.supersnakegame.data.audio.SoundEffectManager
 import com.feryaeljustice.supersnakegame.domain.Direction
+import com.feryaeljustice.supersnakegame.domain.GameSettings
+import com.feryaeljustice.supersnakegame.domain.GameSpeed
+import com.feryaeljustice.supersnakegame.domain.ThemeMode
 import com.feryaeljustice.supersnakegame.ui.components.ButtonsDirectionController
 import com.feryaeljustice.supersnakegame.ui.components.DirectionController
 import com.feryaeljustice.supersnakegame.ui.components.GameSettingsSheet
@@ -82,12 +83,27 @@ import com.feryaeljustice.supersnakegame.ui.theme.NeonYellow
 import kotlinx.coroutines.delay
 import kotlin.math.floor
 import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SnakeGameScreen(
     data: GameScreenData,
     navigateToMenu: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SnakeGameViewModel = hiltViewModel<SnakeGameViewModel>(),
+) {
+    // Overload de compatibilidad: delega en la función principal sin retener parámetros sin uso
+    SnakeGameScreen(
+        navigateToMenu = navigateToMenu,
+        modifier = modifier,
+        viewModel = viewModel,
+    )
+}
+
+@Composable
+fun SnakeGameScreen(
+    navigateToMenu: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: SnakeGameViewModel = hiltViewModel<SnakeGameViewModel>(),
 ) {
     val gameState by viewModel.snakeState.collectAsStateWithLifecycle()
@@ -97,7 +113,6 @@ fun SnakeGameScreen(
     val highestUserCore by viewModel.record.collectAsStateWithLifecycle()
     val settings by viewModel.settingsFlow.collectAsStateWithLifecycle()
 
-    var showSettingsSheet by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -111,16 +126,10 @@ fun SnakeGameScreen(
         }
     }
 
-    // Para medir en píxeles (primitivos sin autoboxing)
-    var measuredCols by remember { mutableIntStateOf(20) }
-    var measuredRows by remember { mutableIntStateOf(20) }
-
-    val focusRequester = remember { FocusRequester() }
-
     // Loop de movimiento de la serpiente
     LaunchedEffect(gameRunning, isPaused, moveDelay) {
         while (gameRunning && !isPaused && !gameState.isGameOver) {
-            delay(moveDelay)
+            delay(moveDelay.milliseconds)
             val ate = viewModel.moveSnakeTo()
             if (ate) {
                 if (settings.hapticsEnabled) {
@@ -140,8 +149,64 @@ fun SnakeGameScreen(
         }
     }
 
+    SnakeGameContent(
+        gameState = gameState,
+        gameRunning = gameRunning,
+        isPaused = isPaused,
+        highestUserScore = highestUserCore,
+        settings = settings,
+        onDirectionChange = { viewModel.setNewDirection(it) },
+        onPauseToggle = {
+            if (isPaused) viewModel.resumeGame() else viewModel.pauseGame()
+        },
+        onPauseGame = { viewModel.pauseGame() },
+        onResumeGame = { viewModel.resumeGame() },
+        onRestartGame = { viewModel.restartGame() },
+        onSignOut = { viewModel.signOut(navigateToMenu) },
+        onGridSizeChanged = { cols, rows -> viewModel.setGridSize(cols, rows) },
+        onThemeChanged = { viewModel.setThemeMode(it) },
+        onSpeedChanged = { viewModel.setGameSpeed(it) },
+        onGridChanged = { viewModel.setShowGrid(it) },
+        onHapticsChanged = { viewModel.setHapticsEnabled(it) },
+        onSoundEffectsVolumeChanged = { viewModel.setSoundEffectsVolume(it) },
+        onSoundEffectsEnabledChanged = { viewModel.setSoundEffectsEnabled(it) },
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SnakeGameContent(
+    gameState: SnakeGameState,
+    gameRunning: Boolean,
+    isPaused: Boolean,
+    highestUserScore: Int,
+    settings: GameSettings,
+    onDirectionChange: (Direction) -> Unit,
+    onPauseToggle: () -> Unit,
+    onPauseGame: () -> Unit,
+    onResumeGame: () -> Unit,
+    onRestartGame: () -> Unit,
+    onSignOut: () -> Unit,
+    onGridSizeChanged: (Int, Int) -> Unit,
+    onThemeChanged: (ThemeMode) -> Unit,
+    onSpeedChanged: (GameSpeed) -> Unit,
+    onGridChanged: (Boolean) -> Unit,
+    onHapticsChanged: (Boolean) -> Unit,
+    onSoundEffectsVolumeChanged: (Float) -> Unit,
+    onSoundEffectsEnabledChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var showSettingsSheet by remember { mutableStateOf(false) }
+
+    // Para medir en píxeles (primitivos sin autoboxing)
+    var measuredCols by remember { mutableIntStateOf(20) }
+    var measuredRows by remember { mutableIntStateOf(20) }
+
+    val focusRequester = remember { FocusRequester() }
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
@@ -195,7 +260,7 @@ fun SnakeGameScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "RÉCORD: $highestUserCore",
+                            text = "RÉCORD: $highestUserScore",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = NeonYellow,
@@ -206,9 +271,7 @@ fun SnakeGameScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (!gameState.isGameOver) {
                             IconButton(
-                                onClick = {
-                                    if (isPaused) viewModel.resumeGame() else viewModel.pauseGame()
-                                },
+                                onClick = onPauseToggle,
                                 modifier = Modifier.size(36.dp),
                             ) {
                                 Icon(
@@ -222,7 +285,7 @@ fun SnakeGameScreen(
 
                         IconButton(
                             onClick = {
-                                viewModel.pauseGame()
+                                onPauseGame()
                                 showSettingsSheet = true
                             },
                             modifier = Modifier.size(36.dp),
@@ -257,29 +320,29 @@ fun SnakeGameScreen(
 
                             measuredCols = cols
                             measuredRows = rows
-                            viewModel.setGridSize(cols, rows)
+                            onGridSizeChanged(cols, rows)
                         }.focusRequester(focusRequester)
                         .focusable()
                         .onKeyEvent { event ->
                             if (event.type == KeyEventType.KeyDown) {
                                 when (event.key) {
                                     Key.DirectionUp, Key.W -> {
-                                        viewModel.setNewDirection(Direction.UP)
+                                        onDirectionChange(Direction.UP)
                                         true
                                     }
 
                                     Key.DirectionDown, Key.S -> {
-                                        viewModel.setNewDirection(Direction.DOWN)
+                                        onDirectionChange(Direction.DOWN)
                                         true
                                     }
 
                                     Key.DirectionLeft, Key.A -> {
-                                        viewModel.setNewDirection(Direction.LEFT)
+                                        onDirectionChange(Direction.LEFT)
                                         true
                                     }
 
                                     Key.DirectionRight, Key.D -> {
-                                        viewModel.setNewDirection(Direction.RIGHT)
+                                        onDirectionChange(Direction.RIGHT)
                                         true
                                     }
 
@@ -300,7 +363,7 @@ fun SnakeGameScreen(
 
                 // Controlador gestual por toques en la pantalla
                 DirectionController { newDirection ->
-                    viewModel.setNewDirection(newDirection = newDirection)
+                    onDirectionChange(newDirection)
                 }
 
                 // D-Pad arcade inferior
@@ -310,7 +373,7 @@ fun SnakeGameScreen(
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 16.dp),
                 ) { newDirect ->
-                    viewModel.setNewDirection(newDirection = newDirect)
+                    onDirectionChange(newDirect)
                 }
 
                 // Modal/Overlay de Pausa
@@ -342,9 +405,9 @@ fun SnakeGameScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = NeonGreen,
                                 )
-                                Spacer(modifier = Modifier.height(16.dp))
+                                 Spacer(modifier = Modifier.height(16.dp))
                                 Button(
-                                    onClick = { viewModel.resumeGame() },
+                                    onClick = onResumeGame,
                                     colors =
                                         ButtonDefaults.buttonColors(
                                             containerColor = NeonGreen,
@@ -363,7 +426,7 @@ fun SnakeGameScreen(
 
                 // Overlay de Game Over con diseño Arcade
                 if (gameState.isGameOver) {
-                    val isNewRecord = gameState.score > 0 && gameState.score >= highestUserCore
+                    val isNewRecord = gameState.score > 0 && gameState.score >= highestUserScore
 
                     Box(
                         modifier =
@@ -425,7 +488,7 @@ fun SnakeGameScreen(
                                 Spacer(modifier = Modifier.height(4.dp))
 
                                 Text(
-                                    text = "Tu mejor récord: $highestUserCore",
+                                    text = "Tu mejor récord: $highestUserScore",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = NeonYellow,
                                 )
@@ -433,7 +496,7 @@ fun SnakeGameScreen(
                                 Spacer(modifier = Modifier.height(24.dp))
 
                                 Button(
-                                    onClick = { viewModel.restartGame() },
+                                    onClick = onRestartGame,
                                     modifier = Modifier.fillMaxWidth(),
                                     colors =
                                         ButtonDefaults.buttonColors(
@@ -450,11 +513,7 @@ fun SnakeGameScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 OutlinedButton(
-                                    onClick = {
-                                        viewModel.signOut {
-                                            navigateToMenu()
-                                        }
-                                    },
+                                    onClick = onSignOut,
                                     modifier = Modifier.fillMaxWidth(),
                                     colors =
                                         ButtonDefaults.outlinedButtonColors(
@@ -476,15 +535,15 @@ fun SnakeGameScreen(
     if (showSettingsSheet) {
         GameSettingsSheet(
             settings = settings,
-            onThemeChanged = { viewModel.setThemeMode(it) },
-            onSpeedChanged = { viewModel.setGameSpeed(it) },
-            onGridChanged = { viewModel.setShowGrid(it) },
-            onHapticsChanged = { viewModel.setHapticsEnabled(it) },
-            onSoundEffectsVolumeChanged = { viewModel.setSoundEffectsVolume(it) },
-            onSoundEffectsEnabledChanged = { viewModel.setSoundEffectsEnabled(it) },
+            onThemeChanged = onThemeChanged,
+            onSpeedChanged = onSpeedChanged,
+            onGridChanged = onGridChanged,
+            onHapticsChanged = onHapticsChanged,
+            onSoundEffectsVolumeChanged = onSoundEffectsVolumeChanged,
+            onSoundEffectsEnabledChanged = onSoundEffectsEnabledChanged,
             onDismissRequest = {
                 showSettingsSheet = false
-                viewModel.resumeGame()
+                onResumeGame()
             },
         )
     }

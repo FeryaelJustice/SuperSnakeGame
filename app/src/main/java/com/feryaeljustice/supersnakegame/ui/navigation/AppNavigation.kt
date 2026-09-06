@@ -22,15 +22,16 @@ fun AppNavigation() {
         }
         composable<GameScreen>(
             typeMap = mapOf(typeOf<GameScreenData>() to createNavType<GameScreenData>()),
-        ) { backStackEntry ->
-            val gameScreen: GameScreen = backStackEntry.toRoute()
-            SnakeGameScreen(data = gameScreen.data, navigateToMenu = {
-                navController.navigate(MenuScreen) {
-                    popUpTo(MenuScreen) {
-                        inclusive = true
+        ) {
+            SnakeGameScreen(
+                navigateToMenu = {
+                    navController.navigate(MenuScreen) {
+                        popUpTo(MenuScreen) {
+                            inclusive = true
+                        }
                     }
-                }
-            })
+                },
+            )
         }
     }
 }
