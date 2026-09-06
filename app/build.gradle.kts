@@ -33,14 +33,14 @@ android {
         }
     }
     namespace = "com.feryaeljustice.supersnakegame"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.feryaeljustice.supersnakegame"
         minSdk = 24
-        targetSdk = 36
-        versionCode = 7
-        versionName = "1.0.6"
+        targetSdk = 37
+        versionCode = 9
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
