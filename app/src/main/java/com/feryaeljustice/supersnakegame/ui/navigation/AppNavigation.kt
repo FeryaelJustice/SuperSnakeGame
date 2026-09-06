@@ -4,11 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.feryaeljustice.supersnakegame.ui.navigation.GameScreen
 import com.feryaeljustice.supersnakegame.ui.screens.game.SnakeGameScreen
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuScreen
-import kotlin.reflect.typeOf
 
 @Composable
 fun AppNavigation() {
@@ -16,13 +13,11 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = MenuScreen) {
         composable<MenuScreen> {
-            MainMenuScreen { gameScreenData ->
-                navController.navigate(GameScreen(gameScreenData))
+            MainMenuScreen {
+                navController.navigate(GameScreen)
             }
         }
-        composable<GameScreen>(
-            typeMap = mapOf(typeOf<GameScreenData>() to createNavType<GameScreenData>()),
-        ) {
+        composable<GameScreen>{
             SnakeGameScreen(
                 navigateToMenu = {
                     navController.navigate(MenuScreen) {

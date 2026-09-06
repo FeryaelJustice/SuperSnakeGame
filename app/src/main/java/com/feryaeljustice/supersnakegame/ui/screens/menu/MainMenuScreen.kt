@@ -61,7 +61,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.feryaeljustice.supersnakegame.R
 import com.feryaeljustice.supersnakegame.ui.components.GoogleButton
-import com.feryaeljustice.supersnakegame.ui.navigation.GameScreenData
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeBorder
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeDarkBg
@@ -71,11 +70,11 @@ import com.feryaeljustice.supersnakegame.ui.theme.NeonGreen
 import com.feryaeljustice.supersnakegame.ui.theme.NeonYellow
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("EffectKeys")
+@Suppress("EffectKeys", "ParamsComparedByRef")
 @Composable
 fun MainMenuScreen(
     viewModel: MainMenuViewModel = hiltViewModel<MainMenuViewModel>(),
-    navigateToGameScreen: (GameScreenData) -> Unit,
+    navigateToGameScreen: () -> Unit,
 ) {
     val ctx = LocalContext.current
     val uiEvents = viewModel.uiEvents
@@ -289,8 +288,7 @@ fun MainMenuScreen(
 
                             is UiState.SignedIn -> {
                                 LaunchedEffect(Unit) {
-                                    val data = GameScreenData(gameId = "1")
-                                    currentNavigateToGameScreen(data)
+                                    currentNavigateToGameScreen()
                                 }
                             }
 

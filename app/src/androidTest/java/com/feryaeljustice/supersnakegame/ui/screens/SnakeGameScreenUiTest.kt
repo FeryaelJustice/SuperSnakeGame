@@ -60,7 +60,6 @@ class SnakeGameScreenUiTest {
         val viewModel = createViewModel()
         composeTestRule.setContent {
             SnakeGameScreen(
-                data = GameScreenData(gameId = "game_1"),
                 navigateToMenu = {},
                 viewModel = viewModel,
             )
@@ -82,7 +81,6 @@ class SnakeGameScreenUiTest {
         val viewModel = createViewModel()
         composeTestRule.setContent {
             SnakeGameScreen(
-                data = GameScreenData(gameId = "game_1"),
                 navigateToMenu = {},
                 viewModel = viewModel,
             )
