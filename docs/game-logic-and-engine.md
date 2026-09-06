@@ -46,38 +46,48 @@ data class SnakeGameState(
 - **`isGameOver`**: Boolean flag indicating whether a fatal collision has occurred.
 - **`score`**: Current accumulated score for the active run.
 
-## 3. Dual-Ticker Architecture
+## 3. Game Loop and Rendering Architecture
 
-SuperSnakeGame decouples visual rendering from game physics through a dual-ticker pattern in `SnakeGameScreen.kt`:
+SuperSnakeGame decouples visual animation rendering from game physics to prevent unnecessary Compose recompositions:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Ticker 1: Visual Rendering               │
-│  - Powered by withFrameNanos                                │
-│  - Runs at display refresh rate (~60 FPS / ~120 FPS)        │
-│  - Ensures buttery-smooth UI transitions and animations     │
+│               Visual Animation: Canvas Draw Phase           │
+│  - Powered by rememberInfiniteTransition                    │
+│  - Runs purely inside DrawScope (Canvas draw phase)         │
+│  - Renders smooth food pulsing without screen recompositions│
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
-│                    Ticker 2: Game Physics                   │
+│                    Game Physics Loop                        │
 │  - Powered by coroutine delay(moveDelayMs)                  │
-│  - Runs at game tick speed (default: 10 FPS / 100 ms)       │
+│  - Runs at selected difficulty speed (7, 10, or 14 FPS)     │
 │  - Executes moveSnakeTo() to advance position               │
+│  - Triggers haptic feedback and low-latency audio via       │
+│    SoundEffectManager when food is eaten                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Movement Ticker Loop
 
 ```kotlin
-LaunchedEffect(gameRunning, moveDelay) {
-    while (gameRunning && !gameState.isGameOver) {
+LaunchedEffect(gameRunning, isPaused, moveDelay) {
+    while (gameRunning && !isPaused && !gameState.isGameOver) {
         delay(moveDelay)
-        viewModel.moveSnakeTo()
+        val ate = viewModel.moveSnakeTo()
+        if (ate) {
+            if (settings.hapticsEnabled) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+            if (settings.soundEffectsEnabled) {
+                soundEffectManager.playEatSound(settings.soundEffectsVolume)
+            }
+        }
     }
 }
 ```
 
-This separation ensures that physical simulation remains consistent and predictable regardless of display refresh rate fluctuations.
+This separation ensures that physical simulation remains consistent and predictable regardless of display refresh rate fluctuations, while isolating animations from UI recomposition.
 
 ## 4. Physics and Movement Logic (`moveSnake`)
 

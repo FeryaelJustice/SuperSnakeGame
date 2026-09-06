@@ -76,9 +76,11 @@ The settings sheet is built using Material 3 `ModalBottomSheet` and provides fiv
 - **Pro (14 FPS)**: Fast-paced high-reflex challenge.
 - Directly updates the snake move loop delay (`1000L / fps`).
 
-### C. Display and Gameplay Preferences
+### C. Display, Gameplay and Audio Preferences
 - **Cuadrícula retro**: Toggle to display or hide the subtle grid lines on the board.
 - **Vibración háptica**: Toggle to enable or disable tactile vibration on consuming fruit and on game over.
+- **Efectos de sonido**: Toggle to enable or disable retro arcade audio feedback when eating apples.
+- **Volumen de efectos**: Continuous Material 3 slider to control sound effects volume from 0% to 100% in real time.
 
 ### D. Contact and Support Card
 - Developer attribution: "Desarrollado por Feryael Justice".

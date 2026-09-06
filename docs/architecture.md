@@ -72,7 +72,10 @@ Responsible for retrieving, persisting, and synchronizing data with remote backe
   - Interacts with Firebase Cloud Firestore under the `records` collection.
   - Utilizes atomic transactions (`firestore.runTransaction`) to guarantee race-condition-free updates to user high scores.
 - **`SettingsRepositoryImpl.kt`**:
-  - Interacts with Android's `SharedPreferences` to load and persist user theme choices, game speed, grid lines toggle, and haptic feedback settings.
+  - Interacts with Android's `SharedPreferences` to load and persist user theme choices, game speed, grid lines toggle, haptic feedback, and sound effects volume/toggle.
+- **`data/audio/SoundEffectManager.kt`**:
+  - Manages low-latency audio playback for gameplay events using Android's native `SoundPool`.
+  - Implements `DefaultLifecycleObserver` to pause, resume, and release audio resources in synchronization with Android lifecycle events.
 
 ### C. Presentation Layer (`com.feryaeljustice.supersnakegame.ui`)
 

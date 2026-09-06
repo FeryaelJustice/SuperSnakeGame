@@ -146,21 +146,52 @@ Se realizó una revisión integral del proyecto orientada a:
 
 ---
 
+### 2.5 Sistema de Efectos de Audio y Control de Volumen
+- **Fecha y hora:** 2026-09-06 18:00:00 CEST
+- **Estado anterior:**
+  - El juego no ofrecía retroalimentación sonora al comer la comida, limitándose únicamente a la vibración háptica.
+  - La hoja de ajustes no disponía de controles para volumen ni activación de audio.
+- **Corrección aplicada:**
+  1. Se generó el recurso retro arcade `eat_apple.wav` (PCM 16-bit, 44.1 kHz, ~90 ms, ~8 KB) en `res/raw/`.
+  2. Se creó `SoundEffectManager` utilizando `SoundPool` con `AudioAttributes.USAGE_GAME` para garantizar latencia ultra-baja (< 10 ms) y mínimo consumo de memoria.
+  3. Se implementó `DefaultLifecycleObserver` y se vinculó en `SnakeGameScreen` con `DisposableEffect`, pausando los streams en `onPause` y liberando recursos nativos con `release()` en `onDestroy`.
+  4. Se añadieron `soundEffectsVolume` (0.0f a 1.0f) y `soundEffectsEnabled` (Boolean) al modelo `GameSettings` y se persistieron en `SettingsRepositoryImpl`.
+  5. Se implementaron en `GameSettingsSheet` un switch de audio con iconos `Icons.AutoMirrored.Filled.VolumeUp`/`VolumeOff` y un slider continuo Material 3 con porcentaje en tiempo real.
+- **Archivos nuevos:**
+  `app/src/main/res/raw/eat_apple.wav`  
+  `app/src/main/java/com/feryaeljustice/supersnakegame/data/audio/SoundEffectManager.kt`  
+  `docs/audio-system.md`  
+- **Archivos modificados:**
+  `app/src/main/java/com/feryaeljustice/supersnakegame/domain/GameSettings.kt`  
+  `app/src/main/java/com/feryaeljustice/supersnakegame/domain/repository/SettingsRepository.kt`  
+  `app/src/main/java/com/feryaeljustice/supersnakegame/data/repository/SettingsRepositoryImpl.kt`  
+  `app/src/main/java/com/feryaeljustice/supersnakegame/ui/components/GameSettingsSheet.kt`  
+  `app/src/main/java/com/feryaeljustice/supersnakegame/ui/screens/game/SnakeGameScreen.kt`  
+  `app/src/main/java/com/feryaeljustice/supersnakegame/ui/screens/game/SnakeGameViewModel.kt`
+
+---
+
 ## 3. Matriz de Archivos Modificados y Creados
 
 | Tipo | Archivo | Motivo de Cambio |
 | :--- | :--- | :--- |
 | **NUEVO** | `domain/SnakeGameState.kt` | Modelo de estado puro en capa de dominio (Clean Architecture). |
+| **NUEVO** | `data/audio/SoundEffectManager.kt` | Gestor de audio de baja latencia con `SoundPool` y `DefaultLifecycleObserver`. |
+| **NUEVO** | `app/src/main/res/raw/eat_apple.wav` | Recurso de audio arcade retro (PCM 16-bit mono). |
+| **NUEVO** | `docs/audio-system.md` | Documentación técnica detallada del subsistema de audio. |
 | **NUEVO** | `docs/audit-and-optimizations-report.md` | Documento histórico de auditoría, estado previo y correcciones. |
 | **MODIFICADO** | `AndroidManifest.xml` | Eliminación de `geo.API_KEY` errónea. |
 | **MODIFICADO** | `domain/GameLogic.kt` | Desacoplamiento de UI, prevención de ANR en `generateFood`. |
+| **MODIFICADO** | `domain/GameSettings.kt` | Añadidos `soundEffectsVolume` y `soundEffectsEnabled`. |
+| **MODIFICADO** | `domain/repository/SettingsRepository.kt` | Métodos de control de volumen y activación de sonido. |
 | **MODIFICADO** | `data/repository/AuthRepositoryImpl.kt` | Eliminación de `@RequiresApi(34)`, manejo de `NoCredentialException`, uso seguro de `.await()`. |
-| **MODIFICADO** | `data/repository/SettingsRepositoryImpl.kt` | Adopción de KTX `edit { ... }`. |
+| **MODIFICADO** | `data/repository/SettingsRepositoryImpl.kt` | Adopción de KTX `edit { ... }`, persistencia y clamping de ajustes de audio. |
 | **MODIFICADO** | `ui/screens/game/SnakeGameState.kt` | Typealias al modelo de dominio. |
-| **MODIFICADO** | `ui/screens/game/SnakeGameScreen.kt` | Eliminación de recomposiciones a 60 FPS, `collectAsStateWithLifecycle`, corrección de autoboxing. |
+| **MODIFICADO** | `ui/screens/game/SnakeGameScreen.kt` | Eliminación de recomposiciones a 60 FPS, `collectAsStateWithLifecycle`, corrección de autoboxing, reproducción de audio con ciclo de vida. |
+| **MODIFICADO** | `ui/screens/game/SnakeGameViewModel.kt` | Exposición de métodos de configuración de audio. |
 | **MODIFICADO** | `ui/components/SnakeGameCanvas.kt` | Animación de pulso aislada en fase de dibujo, sobrecarga retrocompatible. |
 | **MODIFICADO** | `ui/components/ButtonsDirectionController.kt` | Modifier por defecto y extracción de `DirectionButton`. |
 | **MODIFICADO** | `ui/components/DirectionController.kt` | Modifier por defecto y `rememberUpdatedState`. |
 | **MODIFICADO** | `ui/components/GoogleButton.kt` | Modifier por defecto y espaciado de carga. |
-| **MODIFICADO** | `ui/components/GameSettingsSheet.kt` | Uso de KTX `toUri()`. |
+| **MODIFICADO** | `ui/components/GameSettingsSheet.kt` | Uso de KTX `toUri()`, switch de efectos de sonido y slider de volumen. |
 | **MODIFICADO** | `ui/navigation/GenericNavType.kt` | Decodificación `Uri.decode` y supresión controlada de deprecación. |
