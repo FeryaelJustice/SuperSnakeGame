@@ -1,13 +1,14 @@
 package com.feryaeljustice.supersnakegame.data.repository
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.feryaeljustice.supersnakegame.domain.AuthResult
 import com.feryaeljustice.supersnakegame.domain.repository.AuthRepository
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -16,14 +17,11 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Co
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 class AuthRepositoryImpl
     @Inject
@@ -36,7 +34,6 @@ class AuthRepositoryImpl
             const val NONCE_BYTES = 32
         }
 
-        @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
         override suspend fun requestGoogleIdToken(activityContext: Context): AuthResult =
             tryGetGoogleCredential(activityContext, filterByAuthorized = true)
                 ?: tryGetGoogleCredential(activityContext, filterByAuthorized = false)
@@ -48,7 +45,6 @@ class AuthRepositoryImpl
             return bytes.joinToString("") { "%02x".format(it) }
         }
 
-        @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
         @Suppress("TooGenericExceptionCaught")
         override suspend fun tryGetGoogleCredential(
             activityContext: Context,
@@ -88,26 +84,27 @@ class AuthRepositoryImpl
                 } else {
                     null
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: NoCredentialException) {
+                Log.d("Auth", "No credentials available: ${e.message}")
+                null
+            } catch (e: GetCredentialCancellationException) {
+                Log.d("Auth", "User cancelled credential picker: ${e.message}")
+                null
+            } catch (e: GetCredentialException) {
+                Log.w("Auth", "GetCredentialException: ${e.message}", e)
+                null
             } catch (e: Exception) {
                 Log.w("Auth", "GetCredentialException: ${e.message}", e)
                 null
             }
 
         override suspend fun firebaseSignIn(idToken: String): FirebaseUser? =
-            suspendCancellableCoroutine { cancellableContinuation ->
-                firebaseAuth
-                    .signInWithCredential(
-                        GoogleAuthProvider.getCredential(idToken, null),
-                    ).addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val user = firebaseAuth.currentUser
-                            cancellableContinuation.resume(user)
-                        } else {
-                            cancellableContinuation.resumeWithException(task.exception!!)
-                        }
-                    }.addOnFailureListener {
-                        cancellableContinuation.resumeWithException(it)
-                    }
+            withContext(Dispatchers.IO) {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                val result = firebaseAuth.signInWithCredential(credential).await()
+                result.user
             }
 
         override fun getCurrentFirebaseAuthUser(): FirebaseUser? = firebaseAuth.currentUser
@@ -119,6 +116,8 @@ class AuthRepositoryImpl
                 val clearRequest = ClearCredentialStateRequest()
                 credentialManager.clearCredentialState(clearRequest)
                 true
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.w("signOut", "signOut exception: ${e.message}", e)
                 false

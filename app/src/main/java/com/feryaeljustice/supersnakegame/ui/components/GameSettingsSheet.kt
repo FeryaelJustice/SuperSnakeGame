@@ -4,8 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -388,7 +388,7 @@ fun GameSettingsSheet(
                             onClick = {
                                 val intent =
                                     Intent(Intent.ACTION_SENDTO).apply {
-                                        data = Uri.parse("mailto:$contactEmail?subject=Super%20Snake%20Game%20Feedback")
+                                        data = "mailto:$contactEmail?subject=Super%20Snake%20Game%20Feedback".toUri()
                                     }
                                 try {
                                     context.startActivity(intent)

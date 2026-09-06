@@ -17,10 +17,11 @@ inline fun <reified T : Parcelable> createNavType(): NavType<T> =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 bundle.getParcelable(key, T::class.java)
             } else {
+                @Suppress("DEPRECATION")
                 bundle.getParcelable(key)
             }
 
-        override fun parseValue(value: String): T = Json.decodeFromString<T>(value)
+        override fun parseValue(value: String): T = Json.decodeFromString<T>(Uri.decode(value))
 
         override fun serializeAsValue(value: T): String = Uri.encode(Json.encodeToString(value))
 

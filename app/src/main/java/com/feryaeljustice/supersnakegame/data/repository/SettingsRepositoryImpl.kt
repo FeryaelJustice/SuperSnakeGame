@@ -2,6 +2,7 @@ package com.feryaeljustice.supersnakegame.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.feryaeljustice.supersnakegame.domain.GameSettings
 import com.feryaeljustice.supersnakegame.domain.GameSpeed
 import com.feryaeljustice.supersnakegame.domain.ThemeMode
@@ -29,22 +30,22 @@ class SettingsRepositoryImpl
         override fun getSettings(): GameSettings = _settingsFlow.value
 
         override fun setThemeMode(mode: ThemeMode) {
-            prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
+            prefs.edit { putString(KEY_THEME_MODE, mode.name) }
             _settingsFlow.update { it.copy(themeMode = mode) }
         }
 
         override fun setGameSpeed(speed: GameSpeed) {
-            prefs.edit().putString(KEY_GAME_SPEED, speed.name).apply()
+            prefs.edit { putString(KEY_GAME_SPEED, speed.name) }
             _settingsFlow.update { it.copy(gameSpeed = speed) }
         }
 
         override fun setShowGrid(enabled: Boolean) {
-            prefs.edit().putBoolean(KEY_SHOW_GRID, enabled).apply()
+            prefs.edit { putBoolean(KEY_SHOW_GRID, enabled) }
             _settingsFlow.update { it.copy(showGrid = enabled) }
         }
 
         override fun setHapticsEnabled(enabled: Boolean) {
-            prefs.edit().putBoolean(KEY_HAPTICS_ENABLED, enabled).apply()
+            prefs.edit { putBoolean(KEY_HAPTICS_ENABLED, enabled) }
             _settingsFlow.update { it.copy(hapticsEnabled = enabled) }
         }
 

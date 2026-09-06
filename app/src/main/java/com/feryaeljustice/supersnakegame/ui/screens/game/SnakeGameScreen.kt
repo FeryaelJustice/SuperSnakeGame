@@ -36,14 +36,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,33 +86,21 @@ fun SnakeGameScreen(
     navigateToMenu: () -> Unit,
     viewModel: SnakeGameViewModel = hiltViewModel<SnakeGameViewModel>(),
 ) {
-    val gameState by viewModel.snakeState.collectAsState()
-    val gameRunning by viewModel.gameRunning.collectAsState()
-    val isPaused by viewModel.isPaused.collectAsState()
-    val moveDelay by viewModel.moveDelayMs.collectAsState()
-    val highestUserCore by viewModel.record.collectAsState()
+    val gameState by viewModel.snakeState.collectAsStateWithLifecycle()
+    val gameRunning by viewModel.gameRunning.collectAsStateWithLifecycle()
+    val isPaused by viewModel.isPaused.collectAsStateWithLifecycle()
+    val moveDelay by viewModel.moveDelayMs.collectAsStateWithLifecycle()
+    val highestUserCore by viewModel.record.collectAsStateWithLifecycle()
     val settings by viewModel.settingsFlow.collectAsStateWithLifecycle()
 
     var showSettingsSheet by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
 
-    // Para medir en píxeles
-    var measuredCols by remember { mutableStateOf(20) }
+    // Para medir en píxeles (primitivos sin autoboxing)
+    var measuredCols by remember { mutableIntStateOf(20) }
     var measuredRows by remember { mutableIntStateOf(20) }
 
     val focusRequester = remember { FocusRequester() }
-
-    // Dummy state que cambia cada frame para forzar recomposición suave de animación
-    var frameTick by remember { mutableLongStateOf(0L) }
-
-    // Render loop a ~60 FPS
-    LaunchedEffect(Unit) {
-        while (true) {
-            withFrameNanos { nano ->
-                frameTick = nano
-            }
-        }
-    }
 
     // Loop de movimiento de la serpiente
     LaunchedEffect(gameRunning, isPaused, moveDelay) {
@@ -290,7 +275,6 @@ fun SnakeGameScreen(
                     state = gameState,
                     cols = measuredCols,
                     rows = measuredRows,
-                    frame = frameTick,
                     showGrid = settings.showGrid,
                 )
 

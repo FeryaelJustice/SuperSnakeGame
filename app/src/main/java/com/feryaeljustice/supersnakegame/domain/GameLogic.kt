@@ -1,6 +1,5 @@
 package com.feryaeljustice.supersnakegame.domain
 
-import com.feryaeljustice.supersnakegame.ui.screens.game.SnakeGameState
 import kotlin.random.Random
 
 object GameUISettings {
@@ -13,11 +12,45 @@ fun generateFood(
     cols: Int,
     rows: Int,
 ): Pair<Int, Int> {
+    val totalCells = cols * rows
+    val snakeSet = snake.toHashSet()
+    if (snakeSet.size >= totalCells) {
+        return Pair(-1, -1)
+    }
+
+    if (snakeSet.size > (totalCells * 0.7)) {
+        val freeCells = ArrayList<Pair<Int, Int>>(totalCells - snakeSet.size)
+        for (c in 0 until cols) {
+            for (r in 0 until rows) {
+                val cell = Pair(c, r)
+                if (cell !in snakeSet) {
+                    freeCells.add(cell)
+                }
+            }
+        }
+        return if (freeCells.isNotEmpty()) freeCells.random() else Pair(-1, -1)
+    }
+
+    var attempts = 0
     var candidate: Pair<Int, Int>
     do {
         candidate = Pair(Random.nextInt(cols), Random.nextInt(rows))
-    } while (candidate in snake)
-    return candidate
+        attempts++
+    } while (candidate in snakeSet && attempts < 100)
+
+    if (candidate !in snakeSet) {
+        return candidate
+    }
+
+    for (c in 0 until cols) {
+        for (r in 0 until rows) {
+            val cell = Pair(c, r)
+            if (cell !in snakeSet) {
+                return cell
+            }
+        }
+    }
+    return Pair(-1, -1)
 }
 
 enum class Direction { UP, DOWN, LEFT, RIGHT }

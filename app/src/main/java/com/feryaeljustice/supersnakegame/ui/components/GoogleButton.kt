@@ -28,6 +28,7 @@ import com.feryaeljustice.supersnakegame.R
 
 @Composable
 fun GoogleButton(
+    modifier: Modifier = Modifier,
     text: String = "Iniciar sesión con Google",
     loading: Boolean = false,
     loadingText: String = "Iniciando sesión...",
@@ -40,6 +41,7 @@ fun GoogleButton(
 ) {
     Surface(
         onClick = onClicked,
+        modifier = modifier,
         shape = shape,
         border = BorderStroke(width = 1.dp, color = borderColor),
         color = backgroundColor,
@@ -66,6 +68,7 @@ fun GoogleButton(
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = if (loading) loadingText else text)
             if (loading) {
+                Spacer(modifier = Modifier.width(10.dp))
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
                     strokeWidth = 2.dp,

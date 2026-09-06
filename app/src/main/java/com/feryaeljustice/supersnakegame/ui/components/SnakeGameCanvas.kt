@@ -1,8 +1,15 @@
 package com.feryaeljustice.supersnakegame.ui.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.CornerRadius
@@ -13,25 +20,36 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import com.feryaeljustice.supersnakegame.domain.Direction
-import com.feryaeljustice.supersnakegame.ui.screens.game.SnakeGameState
+import com.feryaeljustice.supersnakegame.domain.SnakeGameState
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeGridLine
 import com.feryaeljustice.supersnakegame.ui.theme.NeonGreen
 import com.feryaeljustice.supersnakegame.ui.theme.NeonGreenDark
 import com.feryaeljustice.supersnakegame.ui.theme.NeonRed
 import com.feryaeljustice.supersnakegame.ui.theme.NeonYellow
-import kotlin.math.sin
 
 @Composable
 fun BoxScope.SnakeGameCanvas(
     state: SnakeGameState,
     cols: Int,
     rows: Int,
-    frame: Long,
+    modifier: Modifier = Modifier,
     showGrid: Boolean = true,
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "foodPulse")
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.90f,
+        targetValue = 1.12f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 450, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "foodPulseScale",
+    )
+
     Canvas(
         modifier =
-            Modifier
+            modifier
                 .matchParentSize()
                 .clipToBounds(),
     ) {
@@ -65,7 +83,6 @@ fun BoxScope.SnakeGameCanvas(
         val foodY = state.food.second * cellH
         val foodCenterX = foodX + cellW / 2f
         val foodCenterY = foodY + cellH / 2f
-        val pulse = 1f + 0.12f * sin(frame / 150_000_000.0).toFloat()
         val foodRadius = (cellW.coerceAtMost(cellH) / 2.3f) * pulse
 
         // Halo exterior de comida
@@ -181,3 +198,21 @@ fun BoxScope.SnakeGameCanvas(
         }
     }
 }
+
+@Composable
+fun BoxScope.SnakeGameCanvas(
+    state: SnakeGameState,
+    cols: Int,
+    rows: Int,
+    frame: Long,
+    showGrid: Boolean = true,
+) {
+    SnakeGameCanvas(
+        state = state,
+        cols = cols,
+        rows = rows,
+        modifier = Modifier,
+        showGrid = showGrid,
+    )
+}
+
