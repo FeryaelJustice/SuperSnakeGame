@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.ButtonDefaults
@@ -47,6 +49,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -75,6 +79,8 @@ fun GameSettingsSheet(
     onSpeedChanged: (GameSpeed) -> Unit,
     onGridChanged: (Boolean) -> Unit,
     onHapticsChanged: (Boolean) -> Unit,
+    onSoundEffectsVolumeChanged: (Float) -> Unit = {},
+    onSoundEffectsEnabledChanged: (Boolean) -> Unit = {},
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
@@ -334,6 +340,93 @@ fun GameSettingsSheet(
                             checkedTrackColor = NeonGreen.copy(alpha = 0.5f),
                         ),
                 )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Toggle Efectos de Sonido
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector =
+                            if (settings.soundEffectsEnabled) {
+                                Icons.AutoMirrored.Filled.VolumeUp
+                            } else {
+                                Icons.AutoMirrored.Filled.VolumeOff
+                            },
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Efectos de sonido",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        Text(
+                            text = "Audio retro arcade al comer manzanas",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Switch(
+                    checked = settings.soundEffectsEnabled,
+                    onCheckedChange = onSoundEffectsEnabledChanged,
+                    colors =
+                        SwitchDefaults.colors(
+                            checkedThumbColor = NeonGreen,
+                            checkedTrackColor = NeonGreen.copy(alpha = 0.5f),
+                        ),
+                )
+            }
+
+            // Slider de Volumen de Efectos
+            if (settings.soundEffectsEnabled) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 32.dp, end = 4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = "Volumen de efectos",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = "${(settings.soundEffectsVolume * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = NeonGreen,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Slider(
+                        value = settings.soundEffectsVolume,
+                        onValueChange = onSoundEffectsVolumeChanged,
+                        valueRange = 0.0f..1.0f,
+                        colors =
+                            SliderDefaults.colors(
+                                thumbColor = NeonGreen,
+                                activeTrackColor = NeonGreen,
+                                inactiveTrackColor = NeonGreen.copy(alpha = 0.25f),
+                            ),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

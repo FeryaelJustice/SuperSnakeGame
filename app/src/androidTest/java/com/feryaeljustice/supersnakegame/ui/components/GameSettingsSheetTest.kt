@@ -102,4 +102,25 @@ class GameSettingsSheetTest {
         composeTestRule.onNodeWithContentDescription("Cerrar").performClick()
         assertTrue(dismissed)
     }
+
+    @Test
+    fun displaysSoundEffectsControls() {
+        val settings = GameSettings(soundEffectsEnabled = true, soundEffectsVolume = 0.8f)
+        composeTestRule.setContent {
+            GameSettingsSheet(
+                settings = settings,
+                onThemeChanged = {},
+                onSpeedChanged = {},
+                onGridChanged = {},
+                onHapticsChanged = {},
+                onSoundEffectsVolumeChanged = {},
+                onSoundEffectsEnabledChanged = {},
+                onDismissRequest = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Efectos de sonido").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Volumen de efectos").assertIsDisplayed()
+        composeTestRule.onNodeWithText("80%").assertIsDisplayed()
+    }
 }

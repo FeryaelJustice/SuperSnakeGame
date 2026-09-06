@@ -90,6 +90,32 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
+    fun setSoundEffectsVolume_persistsClampedAndUpdatesFlow() {
+        repository.setSoundEffectsVolume(0.5f)
+        assertEquals(0.5f, repository.getSettings().soundEffectsVolume, 0.001f)
+        assertEquals(0.5f, repository.settingsFlow.value.soundEffectsVolume, 0.001f)
+
+        val newRepoInstance = SettingsRepositoryImpl(context)
+        assertEquals(0.5f, newRepoInstance.getSettings().soundEffectsVolume, 0.001f)
+
+        // Clamping test
+        repository.setSoundEffectsVolume(1.5f)
+        assertEquals(1.0f, repository.getSettings().soundEffectsVolume, 0.001f)
+        repository.setSoundEffectsVolume(-0.2f)
+        assertEquals(0.0f, repository.getSettings().soundEffectsVolume, 0.001f)
+    }
+
+    @Test
+    fun setSoundEffectsEnabled_persistsAndUpdatesFlow() {
+        repository.setSoundEffectsEnabled(false)
+        assertFalse(repository.getSettings().soundEffectsEnabled)
+        assertFalse(repository.settingsFlow.value.soundEffectsEnabled)
+
+        val newRepoInstance = SettingsRepositoryImpl(context)
+        assertFalse(newRepoInstance.getSettings().soundEffectsEnabled)
+    }
+
+    @Test
     fun corruptedPrefs_fallbacksToSafeDefaults() {
         context.getSharedPreferences("super_snake_settings_prefs", Context.MODE_PRIVATE)
             .edit()
@@ -100,5 +126,7 @@ class SettingsRepositoryImplTest {
         val repo = SettingsRepositoryImpl(context)
         assertEquals(ThemeMode.SYSTEM, repo.getSettings().themeMode)
         assertEquals(GameSpeed.NORMAL, repo.getSettings().gameSpeed)
+        assertEquals(0.8f, repo.getSettings().soundEffectsVolume, 0.001f)
+        assertTrue(repo.getSettings().soundEffectsEnabled)
     }
 }

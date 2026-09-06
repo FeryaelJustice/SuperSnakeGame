@@ -12,4 +12,6 @@ interface SettingsRepository {
     fun setGameSpeed(speed: GameSpeed)
     fun setShowGrid(enabled: Boolean)
     fun setHapticsEnabled(enabled: Boolean)
+    fun setSoundEffectsVolume(volume: Float)
+    fun setSoundEffectsEnabled(enabled: Boolean)
 }

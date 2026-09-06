@@ -81,6 +81,10 @@ class SnakeGameViewModel
 
         fun setHapticsEnabled(enabled: Boolean) = settingsRepo.setHapticsEnabled(enabled)
 
+        fun setSoundEffectsVolume(volume: Float) = settingsRepo.setSoundEffectsVolume(volume)
+
+        fun setSoundEffectsEnabled(enabled: Boolean) = settingsRepo.setSoundEffectsEnabled(enabled)
+
         fun setSpeed(millis: Long) {
             _moveDelayMs.value = millis.coerceAtLeast(1L)
         }

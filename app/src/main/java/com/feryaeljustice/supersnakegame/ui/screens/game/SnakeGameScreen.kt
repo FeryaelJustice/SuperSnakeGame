@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -61,7 +63,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.feryaeljustice.supersnakegame.data.audio.SoundEffectManager
 import com.feryaeljustice.supersnakegame.domain.Direction
 import com.feryaeljustice.supersnakegame.ui.components.ButtonsDirectionController
 import com.feryaeljustice.supersnakegame.ui.components.DirectionController
@@ -95,6 +99,17 @@ fun SnakeGameScreen(
 
     var showSettingsSheet by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val soundEffectManager = remember(context) { SoundEffectManager(context) }
+    DisposableEffect(lifecycleOwner, soundEffectManager) {
+        lifecycleOwner.lifecycle.addObserver(soundEffectManager)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(soundEffectManager)
+            soundEffectManager.release()
+        }
+    }
 
     // Para medir en píxeles (primitivos sin autoboxing)
     var measuredCols by remember { mutableIntStateOf(20) }
@@ -107,8 +122,13 @@ fun SnakeGameScreen(
         while (gameRunning && !isPaused && !gameState.isGameOver) {
             delay(moveDelay)
             val ate = viewModel.moveSnakeTo()
-            if (ate && settings.hapticsEnabled) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            if (ate) {
+                if (settings.hapticsEnabled) {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+                if (settings.soundEffectsEnabled) {
+                    soundEffectManager.playEatSound(settings.soundEffectsVolume)
+                }
             }
         }
     }
@@ -460,6 +480,8 @@ fun SnakeGameScreen(
             onSpeedChanged = { viewModel.setGameSpeed(it) },
             onGridChanged = { viewModel.setShowGrid(it) },
             onHapticsChanged = { viewModel.setHapticsEnabled(it) },
+            onSoundEffectsVolumeChanged = { viewModel.setSoundEffectsVolume(it) },
+            onSoundEffectsEnabledChanged = { viewModel.setSoundEffectsEnabled(it) },
             onDismissRequest = {
                 showSettingsSheet = false
                 viewModel.resumeGame()

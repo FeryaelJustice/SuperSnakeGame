@@ -17,4 +17,6 @@ data class GameSettings(
     val gameSpeed: GameSpeed = GameSpeed.NORMAL,
     val showGrid: Boolean = true,
     val hapticsEnabled: Boolean = true,
+    val soundEffectsVolume: Float = 0.8f,
+    val soundEffectsEnabled: Boolean = true,
 )

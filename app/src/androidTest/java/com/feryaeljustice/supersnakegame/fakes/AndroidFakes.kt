@@ -71,4 +71,12 @@ class AndroidFakeSettingsRepository(
     override fun setHapticsEnabled(enabled: Boolean) {
         _settingsFlow.update { it.copy(hapticsEnabled = enabled) }
     }
+
+    override fun setSoundEffectsVolume(volume: Float) {
+        _settingsFlow.update { it.copy(soundEffectsVolume = volume.coerceIn(0.0f, 1.0f)) }
+    }
+
+    override fun setSoundEffectsEnabled(enabled: Boolean) {
+        _settingsFlow.update { it.copy(soundEffectsEnabled = enabled) }
+    }
 }

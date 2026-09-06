@@ -49,6 +49,17 @@ class SettingsRepositoryImpl
             _settingsFlow.update { it.copy(hapticsEnabled = enabled) }
         }
 
+        override fun setSoundEffectsVolume(volume: Float) {
+            val clamped = volume.coerceIn(0.0f, 1.0f)
+            prefs.edit { putFloat(KEY_SOUND_EFFECTS_VOLUME, clamped) }
+            _settingsFlow.update { it.copy(soundEffectsVolume = clamped) }
+        }
+
+        override fun setSoundEffectsEnabled(enabled: Boolean) {
+            prefs.edit { putBoolean(KEY_SOUND_EFFECTS_ENABLED, enabled) }
+            _settingsFlow.update { it.copy(soundEffectsEnabled = enabled) }
+        }
+
         private fun loadSettings(): GameSettings {
             val themeStr = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name)
             val themeMode =
@@ -68,12 +79,16 @@ class SettingsRepositoryImpl
 
             val showGrid = prefs.getBoolean(KEY_SHOW_GRID, true)
             val haptics = prefs.getBoolean(KEY_HAPTICS_ENABLED, true)
+            val soundVolume = prefs.getFloat(KEY_SOUND_EFFECTS_VOLUME, 0.8f)
+            val soundEnabled = prefs.getBoolean(KEY_SOUND_EFFECTS_ENABLED, true)
 
             return GameSettings(
                 themeMode = themeMode,
                 gameSpeed = gameSpeed,
                 showGrid = showGrid,
                 hapticsEnabled = haptics,
+                soundEffectsVolume = soundVolume,
+                soundEffectsEnabled = soundEnabled,
             )
         }
 
@@ -83,5 +98,7 @@ class SettingsRepositoryImpl
             private const val KEY_GAME_SPEED = "game_speed"
             private const val KEY_SHOW_GRID = "show_grid"
             private const val KEY_HAPTICS_ENABLED = "haptics_enabled"
+            private const val KEY_SOUND_EFFECTS_VOLUME = "sound_effects_volume"
+            private const val KEY_SOUND_EFFECTS_ENABLED = "sound_effects_enabled"
         }
     }
