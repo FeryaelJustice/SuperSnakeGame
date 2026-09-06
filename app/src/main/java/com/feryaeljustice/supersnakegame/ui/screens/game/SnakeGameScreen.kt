@@ -72,7 +72,6 @@ import com.feryaeljustice.supersnakegame.ui.components.ButtonsDirectionControlle
 import com.feryaeljustice.supersnakegame.ui.components.DirectionController
 import com.feryaeljustice.supersnakegame.ui.components.GameSettingsSheet
 import com.feryaeljustice.supersnakegame.ui.components.SnakeGameCanvas
-import com.feryaeljustice.supersnakegame.ui.navigation.GameScreenData
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeBoardBg
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeBorder
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeDarkCard
@@ -84,21 +83,6 @@ import kotlinx.coroutines.delay
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
-
-@Composable
-fun SnakeGameScreen(
-    data: GameScreenData,
-    navigateToMenu: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: SnakeGameViewModel = hiltViewModel<SnakeGameViewModel>(),
-) {
-    // Overload de compatibilidad: delega en la función principal sin retener parámetros sin uso
-    SnakeGameScreen(
-        navigateToMenu = navigateToMenu,
-        modifier = modifier,
-        viewModel = viewModel,
-    )
-}
 
 @Composable
 fun SnakeGameScreen(
@@ -151,7 +135,6 @@ fun SnakeGameScreen(
 
     SnakeGameContent(
         gameState = gameState,
-        gameRunning = gameRunning,
         isPaused = isPaused,
         highestUserScore = highestUserCore,
         settings = settings,
@@ -178,7 +161,6 @@ fun SnakeGameScreen(
 @Composable
 fun SnakeGameContent(
     gameState: SnakeGameState,
-    gameRunning: Boolean,
     isPaused: Boolean,
     highestUserScore: Int,
     settings: GameSettings,

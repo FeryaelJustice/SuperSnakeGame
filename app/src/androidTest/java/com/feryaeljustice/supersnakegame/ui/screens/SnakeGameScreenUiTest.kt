@@ -11,7 +11,6 @@ import com.feryaeljustice.supersnakegame.domain.usecase.SaveHighScoreUseCase
 import com.feryaeljustice.supersnakegame.fakes.AndroidFakeAuthRepository
 import com.feryaeljustice.supersnakegame.fakes.AndroidFakeRecordRepository
 import com.feryaeljustice.supersnakegame.fakes.AndroidFakeSettingsRepository
-import com.feryaeljustice.supersnakegame.ui.navigation.GameScreenData
 import com.feryaeljustice.supersnakegame.ui.screens.game.SnakeGameScreen
 import com.feryaeljustice.supersnakegame.ui.screens.game.SnakeGameViewModel
 import org.junit.Rule
@@ -41,7 +40,6 @@ class SnakeGameScreenUiTest {
         val viewModel = createViewModel()
         composeTestRule.setContent {
             SnakeGameScreen(
-                data = GameScreenData(gameId = "game_1"),
                 navigateToMenu = {},
                 viewModel = viewModel,
             )
