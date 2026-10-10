@@ -220,6 +220,7 @@ Detailed architectural and technical guides are available in the [`docs/`](docs/
 - [Authentication Flow Guide](docs/authentication-flow.md) - Credential Manager, nonces, and Firebase Auth workflow.
 - [Audit & Optimizations Report](docs/audit-and-optimizations-report.md) - Comprehensive performance audit, Lint analysis, and ANR prevention.
 - [Google Play App Access Guide](docs/google-play-app-access.md) - Review compliance guide for Google Play Console testers.
+- [Privacy Policy](PRIVACY_POLICY.md) - Official Privacy Policy complying with Google Play Store standards.
 
 ---
 
