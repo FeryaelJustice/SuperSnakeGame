@@ -63,7 +63,9 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.app.Activity
 import com.feryaeljustice.supersnakegame.data.audio.SoundEffectManager
+import com.feryaeljustice.supersnakegame.data.manager.LocalAdManager
 import com.feryaeljustice.supersnakegame.domain.Direction
 import com.feryaeljustice.supersnakegame.domain.GameSettings
 import com.feryaeljustice.supersnakegame.domain.GameSpeed
@@ -100,6 +102,7 @@ fun SnakeGameScreen(
     val haptics = LocalHapticFeedback.current
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val adManager = LocalAdManager.current
 
     val soundEffectManager = remember(context) { SoundEffectManager(context) }
     DisposableEffect(lifecycleOwner, soundEffectManager) {
@@ -144,8 +147,26 @@ fun SnakeGameScreen(
         },
         onPauseGame = { viewModel.pauseGame() },
         onResumeGame = { viewModel.resumeGame() },
-        onRestartGame = { viewModel.restartGame() },
-        onSignOut = { viewModel.signOut(navigateToMenu) },
+        onRestartGame = {
+            val activity = context as? Activity
+            if (activity != null && adManager != null) {
+                adManager.showInterstitial(activity) {
+                    viewModel.restartGame()
+                }
+            } else {
+                viewModel.restartGame()
+            }
+        },
+        onSignOut = {
+            val activity = context as? Activity
+            if (activity != null && adManager != null) {
+                adManager.showInterstitial(activity) {
+                    viewModel.signOut(navigateToMenu)
+                }
+            } else {
+                viewModel.signOut(navigateToMenu)
+            }
+        },
         onGridSizeChanged = { cols, rows -> viewModel.setGridSize(cols, rows) },
         onThemeChanged = { viewModel.setThemeMode(it) },
         onSpeedChanged = { viewModel.setGameSpeed(it) },

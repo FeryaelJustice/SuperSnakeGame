@@ -1,7 +1,7 @@
 [versions]
-agp = "9.4.0"
-kotlin = "2.4.10"
-coreKtx = "1.19.0"
+agp = "9.4.1"
+kotlin = "2.4.21"
+coreKtx = "1.19.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
@@ -10,19 +10,20 @@ kotlinxCoroutines = "1.11.0"
 mockk = "1.14.11"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.08.00"
+composeBom = "2026.09.00"
 hiltNavigationCompose = "1.4.0"
 hilt = "2.60.1"
-ksp = "2.3.2"
-composeNavigation = "2.10.0"
+ksp = "2.3.12"
+composeNavigation = "2.10.2"
 materialIconsExtended = "1.7.8"
 playServicesAuth = "22.0.0"
 serialization = "1.11.0"
 googleGmsServices = "4.5.0"
-firebaseBom = "34.18.0"
+firebaseBom = "35.0.0"
 credentials = "1.6.0"
-googleid = "1.2.0"
+googleid = "1.2.1"
 credentialsPlayServicesAuth = "1.6.0"
+playServicesAds = "25.5.0"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -57,10 +58,10 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
