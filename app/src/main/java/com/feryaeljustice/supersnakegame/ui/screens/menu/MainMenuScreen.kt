@@ -30,12 +30,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,6 +66,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.feryaeljustice.supersnakegame.R
 import com.feryaeljustice.supersnakegame.ui.components.GoogleButton
+import com.feryaeljustice.supersnakegame.ui.components.OfflineButton
 import com.feryaeljustice.supersnakegame.ui.screens.menu.MainMenuViewModel.UiState
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeBorder
 import com.feryaeljustice.supersnakegame.ui.theme.ArcadeDarkBg
@@ -74,7 +80,7 @@ import com.feryaeljustice.supersnakegame.ui.theme.NeonYellow
 @Composable
 fun MainMenuScreen(
     viewModel: MainMenuViewModel = hiltViewModel<MainMenuViewModel>(),
-    navigateToGameScreen: () -> Unit,
+    navigateToGameScreen: (Boolean) -> Unit,
 ) {
     val ctx = LocalContext.current
     val uiEvents = viewModel.uiEvents
@@ -109,17 +115,21 @@ fun MainMenuScreen(
             }
         }
 
+    val currentNavigateToGameScreen by rememberUpdatedState(navigateToGameScreen)
+
     LaunchedEffect(Unit) {
         uiEvents.collect { event ->
             when (event) {
                 is MainMenuUiEvent.ShowToast -> {
                     Toast.makeText(ctx, event.message, Toast.LENGTH_LONG).show()
                 }
+
+                is MainMenuUiEvent.NavigateToGame -> {
+                    currentNavigateToGameScreen(event.isOffline)
+                }
             }
         }
     }
-
-    val currentNavigateToGameScreen by rememberUpdatedState(navigateToGameScreen)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -181,7 +191,7 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Logo con halo neón y animación de pulso sutil
+                // Logo con halo neon y animacion de pulso sutil
                 Box(
                     modifier =
                         Modifier
@@ -206,7 +216,7 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Título con estética arcade
+                // Titulo con estetica arcade
                 Text(
                     text = "SUPER SNAKE GAME",
                     style = MaterialTheme.typography.headlineMedium,
@@ -228,7 +238,7 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Tarjeta de inicio de sesión estilo arcade
+                // Tarjeta principal de juego estilo arcade
                 Card(
                     modifier =
                         Modifier
@@ -254,7 +264,7 @@ fun MainMenuScreen(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "Inicia sesión para guardar tus récords en la nube y competir por la máxima puntuación.",
+                            text = "Inicia sesion para guardar tus records en la nube o juega directamente en modo offline.",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center,
@@ -265,12 +275,45 @@ fun MainMenuScreen(
                         when (ui) {
                             UiState.Idle, UiState.Loading -> {
                                 GoogleButton(
+                                    modifier = Modifier.fillMaxWidth(),
                                     loading = ui is UiState.Loading,
                                     shape = RoundedCornerShape(14.dp),
                                     borderColor = NeonGreen.copy(alpha = 0.6f),
                                     backgroundColor = MaterialTheme.colorScheme.surface,
                                     onClicked = {
                                         viewModel.onGoogleButtonClick(ctx)
+                                    },
+                                )
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.weight(1f),
+                                        color = ArcadeBorder.copy(alpha = 0.4f),
+                                    )
+                                    Text(
+                                        text = "O BIEN",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.5f),
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 12.dp),
+                                    )
+                                    HorizontalDivider(
+                                        modifier = Modifier.weight(1f),
+                                        color = ArcadeBorder.copy(alpha = 0.4f),
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                OfflineButton(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClicked = {
+                                        currentNavigateToGameScreen(true)
                                     },
                                 )
                             }
@@ -287,8 +330,98 @@ fun MainMenuScreen(
                             }
 
                             is UiState.SignedIn -> {
-                                LaunchedEffect(Unit) {
-                                    currentNavigateToGameScreen()
+                                val user = (ui as UiState.SignedIn).user
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = NeonGreen.copy(alpha = 0.15f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, NeonGreen.copy(alpha = 0.5f)),
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.CloudDone,
+                                                contentDescription = null,
+                                                tint = NeonGreen,
+                                                modifier = Modifier.size(16.dp),
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "Sesion: ${user.displayName ?: user.email ?: "Jugador"}",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = NeonGreen,
+                                                fontWeight = FontWeight.SemiBold,
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Surface(
+                                        onClick = { currentNavigateToGameScreen(false) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(14.dp),
+                                        border = androidx.compose.foundation.BorderStroke(1.5.dp, NeonGreen),
+                                        color = ArcadeDarkCard,
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center,
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.PlayArrow,
+                                                contentDescription = null,
+                                                tint = NeonGreen,
+                                                modifier = Modifier.size(28.dp),
+                                            )
+                                            Spacer(modifier = Modifier.width(10.dp))
+                                            Column {
+                                                Text(
+                                                    text = "JUGAR EN LINEA",
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = NeonGreen,
+                                                    letterSpacing = 1.sp,
+                                                )
+                                                Text(
+                                                    text = "Records sincronizados en la nube",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color.White.copy(alpha = 0.7f),
+                                                    fontSize = 11.sp,
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    OfflineButton(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClicked = {
+                                            currentNavigateToGameScreen(true)
+                                        },
+                                    )
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    OutlinedButton(
+                                        onClick = {
+                                            viewModel.signOut()
+                                        },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors =
+                                            ButtonDefaults.outlinedButtonColors(
+                                                contentColor = Color.White.copy(alpha = 0.7f),
+                                            ),
+                                    ) {
+                                        Text("Cerrar Sesion")
+                                    }
                                 }
                             }
 
@@ -298,6 +431,15 @@ fun MainMenuScreen(
                                     color = MaterialTheme.colorScheme.error,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                OfflineButton(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClicked = {
+                                        currentNavigateToGameScreen(true)
+                                    },
+                                )
                             }
                         }
                     }
@@ -305,7 +447,7 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Pills / Características arcade del juego
+                // Pills / Caracteristicas arcade del juego
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -317,7 +459,7 @@ fun MainMenuScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Pie de página con el número de versión (no código)
+                // Pie de pagina con el numero de version (no codigo)
                 Text(
                     text = "v$versionName",
                     style = MaterialTheme.typography.labelMedium,

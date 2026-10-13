@@ -61,17 +61,22 @@ The data layer is decoupled from the UI via dedicated domain Use Cases:
 ### A. Fetching High Scores (`GetHighScoreUseCase`)
 
 Executed when `SnakeGameViewModel` initializes:
-1. Retrieves the current `FirebaseUser` from `AuthRepository`.
-2. Calls `recordRepository.getRecordForUser(userId)`.
-3. If no record exists yet, defaults to `0`.
-4. Populates the `_record` StateFlow to display on the game screen header.
+1. In online mode (`userId != null`):
+   - Queries `recordRepository.getRecordForUser(userId)` from Firestore.
+   - If successful, caches the result locally under `user_cloud_record_{userId}` and returns the score.
+   - If the network call fails, falls back to `getCachedRecordForUser(userId)`.
+   - If no cached score exists, falls back to `getLocalRecord()`.
+2. In offline mode (`userId == null`):
+   - Reads strictly from `recordRepository.getLocalRecord()` (`local_high_score`), maintaining complete separation from cloud scores.
 
 ### B. Saving High Scores (`SaveHighScoreUseCase`)
 
 Executed when a game ends (`updated.isGameOver == true`):
-1. Verifies that an authenticated user is active.
-2. Calls `recordRepository.saveIfHigher(userId, score)`.
-3. Returns the highest resulting score, updating the UI in real time.
+1. In online mode (`userId != null`):
+   - Commits the score to Firestore via `recordRepository.saveIfHigher(userId, score)` and updates the user cache.
+   - If the network request fails, saves the score to `saveCachedRecordForUser(userId, score)` without touching the offline local record.
+2. In offline mode (`userId == null`):
+   - Updates `recordRepository.saveLocalRecordIfHigher(score)` in local storage only. Cloud records and user caches remain untouched.
 
 ## 4. Security Rules Recommendation
 

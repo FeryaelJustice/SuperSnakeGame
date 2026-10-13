@@ -136,11 +136,14 @@ fun SnakeGameScreen(
         }
     }
 
+    val isOfflineMode = viewModel.isOfflineMode
+
     SnakeGameContent(
         gameState = gameState,
         isPaused = isPaused,
         highestUserScore = highestUserCore,
         settings = settings,
+        isOffline = isOfflineMode,
         onDirectionChange = { viewModel.setNewDirection(it) },
         onPauseToggle = {
             if (isPaused) viewModel.resumeGame() else viewModel.pauseGame()
@@ -167,6 +170,17 @@ fun SnakeGameScreen(
                 viewModel.signOut(navigateToMenu)
             }
         },
+        onNavigateToMenu = {
+            val activity = context as? Activity
+            if (activity != null && adManager != null) {
+                adManager.showInterstitial(activity) {
+                    navigateToMenu()
+                }
+            } else {
+                navigateToMenu()
+            }
+        },
+        onResetLocalRecord = { viewModel.resetLocalRecord() },
         onGridSizeChanged = { cols, rows -> viewModel.setGridSize(cols, rows) },
         onThemeChanged = { viewModel.setThemeMode(it) },
         onSpeedChanged = { viewModel.setGameSpeed(it) },
@@ -185,12 +199,15 @@ fun SnakeGameContent(
     isPaused: Boolean,
     highestUserScore: Int,
     settings: GameSettings,
+    isOffline: Boolean = false,
     onDirectionChange: (Direction) -> Unit,
     onPauseToggle: () -> Unit,
     onPauseGame: () -> Unit,
     onResumeGame: () -> Unit,
     onRestartGame: () -> Unit,
     onSignOut: () -> Unit,
+    onNavigateToMenu: () -> Unit = onSignOut,
+    onResetLocalRecord: () -> Unit = {},
     onGridSizeChanged: (Int, Int) -> Unit,
     onThemeChanged: (ThemeMode) -> Unit,
     onSpeedChanged: (GameSpeed) -> Unit,
@@ -253,21 +270,38 @@ fun SnakeGameContent(
                         )
                     }
 
-                    // Récord
+                    // Record
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.EmojiEvents,
-                            contentDescription = "Récord",
+                            contentDescription = "Record",
                             tint = NeonYellow,
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "RÉCORD: $highestUserScore",
+                            text = "RECORD: $highestUserScore",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = NeonYellow,
                         )
+                        if (isOffline) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = NeonCyan.copy(alpha = 0.15f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, NeonCyan.copy(alpha = 0.4f)),
+                            ) {
+                                Text(
+                                    text = "OFFLINE",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = NeonCyan,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 9.sp,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
                     }
 
                     // Botones de acción: Pausa y Opciones/Ajustes
@@ -422,6 +456,19 @@ fun SnakeGameContent(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text("Reanudar Partida", fontWeight = FontWeight.Bold)
                                 }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                OutlinedButton(
+                                    onClick = onNavigateToMenu,
+                                    colors =
+                                        ButtonDefaults.outlinedButtonColors(
+                                            contentColor = Color.White.copy(alpha = 0.8f),
+                                        ),
+                                    shape = RoundedCornerShape(12.dp),
+                                ) {
+                                    Text("Salir al Menú")
+                                }
                             }
                         }
                     }
@@ -516,7 +563,7 @@ fun SnakeGameContent(
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 OutlinedButton(
-                                    onClick = onSignOut,
+                                    onClick = onNavigateToMenu,
                                     modifier = Modifier.fillMaxWidth(),
                                     colors =
                                         ButtonDefaults.outlinedButtonColors(
@@ -524,7 +571,23 @@ fun SnakeGameContent(
                                         ),
                                     shape = RoundedCornerShape(14.dp),
                                 ) {
-                                    Text("Cerrar Sesión")
+                                    Text("Volver al Menú")
+                                }
+
+                                if (!isOffline) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    OutlinedButton(
+                                        onClick = onSignOut,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors =
+                                            ButtonDefaults.outlinedButtonColors(
+                                                contentColor = NeonRed.copy(alpha = 0.8f),
+                                            ),
+                                        shape = RoundedCornerShape(14.dp),
+                                    ) {
+                                        Text("Cerrar Sesión")
+                                    }
                                 }
                             }
                         }
@@ -538,12 +601,16 @@ fun SnakeGameContent(
     if (showSettingsSheet) {
         GameSettingsSheet(
             settings = settings,
+            isOffline = isOffline,
             onThemeChanged = onThemeChanged,
             onSpeedChanged = onSpeedChanged,
             onGridChanged = onGridChanged,
             onHapticsChanged = onHapticsChanged,
             onSoundEffectsVolumeChanged = onSoundEffectsVolumeChanged,
             onSoundEffectsEnabledChanged = onSoundEffectsEnabledChanged,
+            onNavigateToMenu = onNavigateToMenu,
+            onSignOut = onSignOut,
+            onResetLocalRecord = onResetLocalRecord,
             onDismissRequest = {
                 showSettingsSheet = false
                 onResumeGame()

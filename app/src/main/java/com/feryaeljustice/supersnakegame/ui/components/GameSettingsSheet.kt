@@ -34,11 +34,15 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -57,9 +61,13 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,17 +81,22 @@ import com.feryaeljustice.supersnakegame.domain.GameSpeed
 import com.feryaeljustice.supersnakegame.domain.ThemeMode
 import com.feryaeljustice.supersnakegame.ui.theme.NeonCyan
 import com.feryaeljustice.supersnakegame.ui.theme.NeonGreen
+import com.feryaeljustice.supersnakegame.ui.theme.NeonRed
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GameSettingsSheet(
     settings: GameSettings,
+    isOffline: Boolean = false,
     onThemeChanged: (ThemeMode) -> Unit,
     onSpeedChanged: (GameSpeed) -> Unit,
     onGridChanged: (Boolean) -> Unit,
     onHapticsChanged: (Boolean) -> Unit,
     onSoundEffectsVolumeChanged: (Float) -> Unit = {},
     onSoundEffectsEnabledChanged: (Boolean) -> Unit = {},
+    onNavigateToMenu: () -> Unit = {},
+    onSignOut: () -> Unit = {},
+    onResetLocalRecord: () -> Unit = {},
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
@@ -467,6 +480,116 @@ fun GameSettingsSheet(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Gestionar opciones de privacidad", fontSize = 12.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Gestión de Partida y Sesión
+            Text(
+                text = if (isOffline) "Partida Offline" else "Sesión y Cuenta",
+                style = MaterialTheme.typography.labelLarge,
+                color = NeonCyan,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            if (isOffline) {
+                OutlinedButton(
+                    onClick = {
+                        onDismissRequest()
+                        onNavigateToMenu()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                        ),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = NeonCyan,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Volver al Menú", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                var showResetConfirmDialog by remember { mutableStateOf(false) }
+
+                OutlinedButton(
+                    onClick = { showResetConfirmDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = NeonRed,
+                        ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, NeonRed.copy(alpha = 0.6f)),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.RestartAlt,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = NeonRed,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Restablecer récord local", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeonRed)
+                }
+
+                if (showResetConfirmDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showResetConfirmDialog = false },
+                        title = { Text("¿Restablecer récord?") },
+                        text = { Text("Tu récord local se reiniciará a 0. Esta acción no se puede deshacer.") },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showResetConfirmDialog = false
+                                    onResetLocalRecord()
+                                    Toast.makeText(context, "Récord local restablecido a 0", Toast.LENGTH_SHORT).show()
+                                },
+                            ) {
+                                Text("Restablecer", color = NeonRed, fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showResetConfirmDialog = false },
+                            ) {
+                                Text("Cancelar")
+                            }
+                        },
+                    )
+                }
+            } else {
+                OutlinedButton(
+                    onClick = {
+                        onDismissRequest()
+                        onSignOut()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = NeonRed,
+                        ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, NeonRed.copy(alpha = 0.6f)),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = NeonRed,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cerrar Sesión", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = NeonRed)
                 }
             }
 

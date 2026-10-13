@@ -4,4 +4,8 @@ sealed class MainMenuUiEvent {
     data class ShowToast(
         val message: String,
     ) : MainMenuUiEvent()
+
+    data class NavigateToGame(
+        val isOffline: Boolean,
+    ) : MainMenuUiEvent()
 }

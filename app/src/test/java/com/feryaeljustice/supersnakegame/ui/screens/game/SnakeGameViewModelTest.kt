@@ -1,5 +1,6 @@
 package com.feryaeljustice.supersnakegame.ui.screens.game
 
+import com.feryaeljustice.supersnakegame.domain.usecase.ResetLocalRecordUseCase
 import com.feryaeljustice.supersnakegame.domain.Direction
 import com.feryaeljustice.supersnakegame.domain.GameSettings
 import com.feryaeljustice.supersnakegame.domain.GameSpeed
@@ -34,6 +35,7 @@ class SnakeGameViewModelTest {
     private lateinit var fakeSettingsRepo: FakeSettingsRepository
     private lateinit var getHighScoreUseCase: GetHighScoreUseCase
     private lateinit var saveHighScoreUseCase: SaveHighScoreUseCase
+    private lateinit var resetLocalRecordUseCase: ResetLocalRecordUseCase
     private lateinit var mockUser: FirebaseUser
 
     private fun createViewModel(): SnakeGameViewModel {
@@ -41,6 +43,7 @@ class SnakeGameViewModelTest {
             authRepo = fakeAuthRepo,
             getHighScore = getHighScoreUseCase,
             saveHighScore = saveHighScoreUseCase,
+            resetLocalRecordUseCase = resetLocalRecordUseCase,
             settingsRepo = fakeSettingsRepo,
         )
     }
@@ -55,6 +58,7 @@ class SnakeGameViewModelTest {
         fakeSettingsRepo = FakeSettingsRepository()
         getHighScoreUseCase = GetHighScoreUseCase(fakeRecordRepo)
         saveHighScoreUseCase = SaveHighScoreUseCase(fakeRecordRepo)
+        resetLocalRecordUseCase = ResetLocalRecordUseCase(fakeRecordRepo)
     }
 
     @Test
@@ -164,5 +168,35 @@ class SnakeGameViewModelTest {
 
         assertTrue(fakeAuthRepo.signOutCalled)
         assertTrue(callbackCalled)
+    }
+
+    @Test
+    fun offlineMode_loadsLocalRecordAndIdentifiesAsOffline() = runTest {
+        fakeAuthRepo.initialUser = null
+        fakeRecordRepo.localRecord = 420
+        val savedStateHandle = androidx.lifecycle.SavedStateHandle(mapOf("isOffline" to true))
+        val viewModel = SnakeGameViewModel(
+            authRepo = fakeAuthRepo,
+            getHighScore = getHighScoreUseCase,
+            saveHighScore = saveHighScoreUseCase,
+            resetLocalRecordUseCase = resetLocalRecordUseCase,
+            settingsRepo = fakeSettingsRepo,
+            savedStateHandle = savedStateHandle,
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.isOfflineMode)
+        assertEquals(420, viewModel.record.value)
+    }
+
+    @Test
+    fun resetLocalRecord_resetsLocalRecordAndUpdatesStateToZero() = runTest {
+        val viewModel = createViewModel()
+        fakeRecordRepo.localRecord = 999
+        viewModel.resetLocalRecord()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.record.value)
+        assertEquals(0, fakeRecordRepo.localRecord)
     }
 }

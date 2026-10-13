@@ -78,6 +78,13 @@ class MainMenuViewModel
 
         fun setHapticsEnabled(enabled: Boolean) = settingsRepo.setHapticsEnabled(enabled)
 
+        fun signOut() {
+            viewModelScope.launch {
+                authRepo.signOut()
+                _uiState.value = Idle
+            }
+        }
+
         /** Llamar al click de tu GoogleButton */
         @Suppress("TooGenericExceptionCaught")
         fun onGoogleButtonClick(activityContext: Context) {
@@ -102,6 +109,7 @@ class MainMenuViewModel
                             val user = authRepo.firebaseSignIn(res.idToken)
                             user?.let {
                                 _uiState.value = SignedIn(it)
+                                _uiEvents.emit(MainMenuUiEvent.NavigateToGame(isOffline = false))
                             } ?: error("User is null")
                         } catch (t: Throwable) {
                             Log.e("signIn", "error ${t.message}")

@@ -1,5 +1,6 @@
 package com.feryaeljustice.supersnakegame.ui.screens.game
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.feryaeljustice.supersnakegame.domain.Direction
@@ -7,11 +8,11 @@ import com.feryaeljustice.supersnakegame.domain.GameSpeed
 import com.feryaeljustice.supersnakegame.domain.ThemeMode
 import com.feryaeljustice.supersnakegame.domain.moveSnake
 import com.feryaeljustice.supersnakegame.domain.repository.AuthRepository
-import com.feryaeljustice.supersnakegame.domain.repository.RecordRepository
 import com.feryaeljustice.supersnakegame.domain.repository.SettingsRepository
 import com.feryaeljustice.supersnakegame.domain.usecase.GetHighScoreUseCase
 import com.feryaeljustice.supersnakegame.domain.usecase.SaveHighScoreUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.feryaeljustice.supersnakegame.domain.usecase.ResetLocalRecordUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +27,14 @@ class SnakeGameViewModel
         private val authRepo: AuthRepository,
         private val getHighScore: GetHighScoreUseCase,
         private val saveHighScore: SaveHighScoreUseCase,
+        private val resetLocalRecordUseCase: ResetLocalRecordUseCase,
         private val settingsRepo: SettingsRepository,
+        savedStateHandle: SavedStateHandle = SavedStateHandle(),
     ) : ViewModel() {
+        val isOffline: Boolean = savedStateHandle.get<Boolean>("isOffline") ?: false
+        val isOfflineMode: Boolean
+            get() = isOffline || authRepo.getCurrentFirebaseAuthUser() == null
+
         private var cols = 20
         private var rows = 20
 
@@ -52,9 +59,8 @@ class SnakeGameViewModel
 
         init {
             viewModelScope.launch {
-                authRepo.getCurrentFirebaseAuthUser()?.let { user ->
-                    _record.value = getHighScore(user.uid)
-                }
+                val userId = if (isOfflineMode) null else authRepo.getCurrentFirebaseAuthUser()?.uid
+                _record.value = getHighScore(userId)
             }
 
             viewModelScope.launch {
@@ -115,10 +121,9 @@ class SnakeGameViewModel
 
                 // Actualizar puntuacion maxima
                 viewModelScope.launch {
-                    authRepo.getCurrentFirebaseAuthUser()?.let { user ->
-                        val newRecord = saveHighScore(user.uid, _snakeState.value.score)
-                        _record.value = newRecord
-                    }
+                    val userId = if (isOfflineMode) null else authRepo.getCurrentFirebaseAuthUser()?.uid
+                    val newRecord = saveHighScore(userId, _snakeState.value.score)
+                    _record.value = newRecord
                 }
             }
             return ateFood
@@ -146,8 +151,17 @@ class SnakeGameViewModel
 
         fun signOut(onFinish: () -> Unit) {
             viewModelScope.launch {
-                authRepo.signOut()
+                if (!isOfflineMode) {
+                    authRepo.signOut()
+                }
                 onFinish()
+            }
+        }
+
+        fun resetLocalRecord() {
+            viewModelScope.launch {
+                resetLocalRecordUseCase()
+                _record.value = 0
             }
         }
     }

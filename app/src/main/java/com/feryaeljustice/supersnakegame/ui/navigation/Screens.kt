@@ -6,4 +6,6 @@ import kotlinx.serialization.Serializable
 object MenuScreen
 
 @Serializable
-object GameScreen
+data class GameScreen(
+    val isOffline: Boolean = false,
+)

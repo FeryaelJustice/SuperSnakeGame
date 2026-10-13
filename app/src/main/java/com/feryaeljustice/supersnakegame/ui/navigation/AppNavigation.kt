@@ -13,11 +13,13 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = MenuScreen) {
         composable<MenuScreen> {
-            MainMenuScreen {
-                navController.navigate(GameScreen)
-            }
+            MainMenuScreen(
+                navigateToGameScreen = { isOffline ->
+                    navController.navigate(GameScreen(isOffline = isOffline))
+                },
+            )
         }
-        composable<GameScreen>{
+        composable<GameScreen> {
             SnakeGameScreen(
                 navigateToMenu = {
                     navController.navigate(MenuScreen) {

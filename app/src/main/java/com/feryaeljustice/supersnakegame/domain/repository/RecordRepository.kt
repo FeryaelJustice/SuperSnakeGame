@@ -7,4 +7,14 @@ interface RecordRepository {
         userId: String,
         newScore: Int,
     ): Int
+
+    suspend fun getCachedRecordForUser(userId: String): Int
+
+    suspend fun saveCachedRecordForUser(userId: String, score: Int)
+
+    suspend fun getLocalRecord(): Int
+
+    suspend fun saveLocalRecordIfHigher(newScore: Int): Int
+
+    suspend fun resetLocalRecord()
 }

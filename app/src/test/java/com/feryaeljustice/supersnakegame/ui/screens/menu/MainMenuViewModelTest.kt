@@ -131,4 +131,17 @@ class MainMenuViewModelTest {
         viewModel.setHapticsEnabled(false)
         assertFalse(fakeSettingsRepo.getSettings().hapticsEnabled)
     }
+
+    @Test
+    fun signOut_resetsStateToIdle() = runTest {
+        fakeAuthRepo.initialUser = mockUser
+        val viewModel = createViewModel()
+        assertTrue(viewModel.uiState.value is MainMenuViewModel.UiState.SignedIn)
+
+        viewModel.signOut()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value is MainMenuViewModel.UiState.Idle)
+        assertTrue(fakeAuthRepo.signOutCalled)
+    }
 }

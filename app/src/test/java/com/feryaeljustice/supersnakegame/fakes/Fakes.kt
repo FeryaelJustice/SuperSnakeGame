@@ -47,19 +47,53 @@ class FakeAuthRepository(
 
 class FakeRecordRepository(
     initialRecords: Map<String, Int> = emptyMap(),
+    private var initialLocalRecord: Int = 0,
 ) : RecordRepository {
     val records = initialRecords.toMutableMap()
+    val cachedUserRecords = mutableMapOf<String, Int>()
+    var localRecord: Int = initialLocalRecord
+    var simulateCloudFailure: Boolean = false
 
-    override suspend fun getRecordForUser(userId: String): Int? = records[userId]
+    override suspend fun getRecordForUser(userId: String): Int? {
+        if (simulateCloudFailure) return null
+        val score = records[userId]
+        if (score != null) {
+            cachedUserRecords[userId] = score
+        }
+        return score
+    }
 
     override suspend fun saveIfHigher(
         userId: String,
         newScore: Int,
     ): Int {
+        if (simulateCloudFailure) throw RuntimeException("Simulated cloud failure")
         val current = records[userId] ?: 0
         val best = maxOf(current, newScore)
         records[userId] = best
+        cachedUserRecords[userId] = best
         return best
+    }
+
+    override suspend fun getCachedRecordForUser(userId: String): Int =
+        cachedUserRecords[userId] ?: 0
+
+    override suspend fun saveCachedRecordForUser(userId: String, score: Int) {
+        val current = cachedUserRecords[userId] ?: 0
+        val best = maxOf(current, score)
+        cachedUserRecords[userId] = best
+    }
+
+    override suspend fun getLocalRecord(): Int = localRecord
+
+    override suspend fun saveLocalRecordIfHigher(newScore: Int): Int {
+        val best = maxOf(localRecord, newScore)
+        localRecord = best
+        return best
+    }
+
+    override suspend fun resetLocalRecord() {
+        localRecord = 0
     }
 }
 
