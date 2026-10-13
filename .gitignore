@@ -18,3 +18,4 @@ keystore.properties
 app/google-services.json
 /app/google-services.json
 /app/release/app-release.aab
+/app/release/mapping.txt

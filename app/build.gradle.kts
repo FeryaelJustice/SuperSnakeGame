@@ -17,6 +17,26 @@ val keystoreProperties =
         load(FileInputStream(keystorePropertiesFile))
     }
 
+val localProperties =
+    Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            load(FileInputStream(file))
+        }
+    }
+val admobAppId =
+    localProperties.getProperty("admob.appId")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: "ca-app-pub-3940256099942544~3347511713"
+val debugInterstitialAdUnitId =
+    localProperties.getProperty("admob.interstitial.testAdUnitId")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: "ca-app-pub-3940256099942544/1033173712"
+val releaseInterstitialAdUnitId =
+    localProperties.getProperty("admob.interstitial.productionAdUnitId")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: debugInterstitialAdUnitId
+
 android {
     signingConfigs {
         getByName("debug") {
@@ -39,8 +59,10 @@ android {
         applicationId = "com.feryaeljustice.supersnakegame"
         minSdk = 24
         targetSdk = 37
-        versionCode = 10
-        versionName = "2.0.0"
+        versionCode = 11
+        versionName = "2.1.0"
+
+        manifestPlaceholders["admobAppId"] = admobAppId
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,12 +76,22 @@ android {
                 "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_AD_UNIT_ID",
+                "\"${releaseInterstitialAdUnitId.replace("\"", "\\\"")}\"",
+            )
         }
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = true
             signingConfig = signingConfigs.getByName("debug")
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_AD_UNIT_ID",
+                "\"${debugInterstitialAdUnitId.replace("\"", "\\\"")}\"",
+            )
         }
     }
     compileOptions {
@@ -68,6 +100,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
@@ -121,4 +154,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    // Google Mobile Ads (AdMob)
+    implementation(libs.play.services.ads)
 }

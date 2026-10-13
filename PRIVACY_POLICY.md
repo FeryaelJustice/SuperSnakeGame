@@ -48,14 +48,17 @@ SuperSnakeGame utilizes reputable third-party services provided by Google LLC to
   [Firebase Privacy & Security](https://firebase.google.com/support/privacy)
 - **Firebase Analytics:** Measures gameplay engagement and telemetry to improve game balance.  
   [Google Analytics for Firebase Data Collection](https://support.google.com/firebase/answer/6318039)
+- **Google AdMob (Google LLC):** Displays mobile advertisements in the app to support free gameplay. AdMob may process device identifiers and ad interactions in accordance with Google's advertising policies.  
+  [Google Advertising & Privacy](https://policies.google.com/technologies/ads)
 
 ---
 
 ## 4. Permissions Requested
 
-SuperSnakeGame does not request dangerous or intrusive runtime permissions (such as precise location, camera, microphone, or contacts). The app only requires standard network permissions:
-- `android.permission.INTERNET`: Required to communicate with Firebase Auth, Cloud Firestore, and Google Play Services.
+SuperSnakeGame does not request dangerous or intrusive runtime permissions (such as precise location, camera, microphone, or contacts). The app only requires standard network and advertising permissions:
+- `android.permission.INTERNET`: Required to communicate with Firebase Auth, Cloud Firestore, and Google AdMob.
 - `android.permission.ACCESS_NETWORK_STATE`: Required to detect network availability and avoid redundant cloud synchronization attempts when offline.
+- `com.google.android.gms.permission.AD_ID`: Android Advertising ID permission utilized by the Google Mobile Ads SDK for ad serving and frequency capping.
 
 ---
 
