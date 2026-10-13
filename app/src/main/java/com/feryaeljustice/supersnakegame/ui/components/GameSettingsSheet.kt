@@ -1,11 +1,13 @@
 package com.feryaeljustice.supersnakegame.ui.components
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.core.net.toUri
+import com.feryaeljustice.supersnakegame.data.manager.LocalAdManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -85,6 +88,8 @@ fun GameSettingsSheet(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
     val context = LocalContext.current
+    val adManager = LocalAdManager.current
+    val isPrivacyOptionsRequired = adManager?.isPrivacyOptionsRequired() == true
     val versionName =
         remember(context) {
             try {
@@ -426,6 +431,42 @@ fun GameSettingsSheet(
                                 inactiveTrackColor = NeonGreen.copy(alpha = 0.25f),
                             ),
                     )
+                }
+            }
+
+            if (isPrivacyOptionsRequired) {
+                Spacer(modifier = Modifier.height(20.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Privacidad y Consentimiento",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = NeonCyan,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        (context as? Activity)?.let { activity ->
+                            adManager.showPrivacyOptionsForm(activity)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                        ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Gestionar opciones de privacidad", fontSize = 12.sp)
                 }
             }
 

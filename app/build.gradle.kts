@@ -59,8 +59,8 @@ android {
         applicationId = "com.feryaeljustice.supersnakegame"
         minSdk = 24
         targetSdk = 37
-        versionCode = 11
-        versionName = "2.1.0"
+        versionCode = 12
+        versionName = "2.2.0"
 
         manifestPlaceholders["admobAppId"] = admobAppId
 
@@ -157,4 +157,6 @@ dependencies {
 
     // Google Mobile Ads (AdMob)
     implementation(libs.play.services.ads)
+    // User Messaging Platform (UMP)
+    implementation(libs.user.messaging.platform)
 }

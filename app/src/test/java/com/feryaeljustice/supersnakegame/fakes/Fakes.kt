@@ -95,3 +95,51 @@ class FakeSettingsRepository(
         _settingsFlow.update { it.copy(soundEffectsEnabled = enabled) }
     }
 }
+
+class FakeAdManager : com.feryaeljustice.supersnakegame.data.manager.AdManager {
+    var initializeCalled = false
+    var gatherConsentCalled = false
+    var isPrivacyOptionsRequiredResult = false
+    var showPrivacyOptionsCalled = false
+    var loadInterstitialCalled = false
+    var isInterstitialLoadedResult = false
+    var showInterstitialCalled = false
+
+    override fun initialize() {
+        initializeCalled = true
+    }
+
+    override fun gatherConsentAndInitialize(
+        activity: android.app.Activity,
+        onConsentCompleted: () -> Unit,
+    ) {
+        gatherConsentCalled = true
+        onConsentCompleted()
+    }
+
+    override fun isPrivacyOptionsRequired(): Boolean = isPrivacyOptionsRequiredResult
+
+    override fun showPrivacyOptionsForm(
+        activity: android.app.Activity,
+        onDismissed: () -> Unit,
+    ) {
+        showPrivacyOptionsCalled = true
+        onDismissed()
+    }
+
+    override fun loadInterstitialAd() {
+        loadInterstitialCalled = true
+    }
+
+    override fun isInterstitialLoaded(): Boolean = isInterstitialLoadedResult
+
+    override fun showInterstitial(
+        activity: android.app.Activity,
+        force: Boolean,
+        onAdDismissed: () -> Unit,
+    ) {
+        showInterstitialCalled = true
+        onAdDismissed()
+    }
+}
+

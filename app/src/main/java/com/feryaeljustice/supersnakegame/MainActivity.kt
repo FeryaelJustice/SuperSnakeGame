@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        adManager.gatherConsentAndInitialize(this)
         setContent {
             val settings by settingsRepository.settingsFlow.collectAsStateWithLifecycle()
             SuperSnakeGameTheme(themeMode = settings.themeMode) {

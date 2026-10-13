@@ -13,9 +13,31 @@ val LocalAdManager = compositionLocalOf<AdManager?> { null }
  */
 interface AdManager {
     /**
-     * Initializes the Mobile Ads SDK and preloads ads.
+     * Initializes the Mobile Ads SDK and preloads ads if consent allows.
      */
     fun initialize()
+
+    /**
+     * Requests UMP consent information update and presents the consent form if required.
+     * Initializes Mobile Ads SDK as soon as consent is confirmed (canRequestAds is true).
+     */
+    fun gatherConsentAndInitialize(
+        activity: Activity,
+        onConsentCompleted: () -> Unit = {},
+    )
+
+    /**
+     * Returns true if the user is in a jurisdiction where privacy options must be exposed.
+     */
+    fun isPrivacyOptionsRequired(): Boolean
+
+    /**
+     * Presents the privacy options form so the user can modify their consent preferences at any time.
+     */
+    fun showPrivacyOptionsForm(
+        activity: Activity,
+        onDismissed: () -> Unit = {},
+    )
 
     /**
      * Loads an interstitial ad in the background.

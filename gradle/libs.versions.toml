@@ -24,6 +24,7 @@ credentials = "1.6.0"
 googleid = "1.2.1"
 credentialsPlayServicesAuth = "1.6.0"
 playServicesAds = "25.5.0"
+ump = "4.0.0"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -59,6 +60,7 @@ androidx-credentials = { group = "androidx.credentials", name = "credentials", v
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
 play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
+user-messaging-platform = { module = "com.google.android.ump:user-messaging-platform", version.ref = "ump" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
